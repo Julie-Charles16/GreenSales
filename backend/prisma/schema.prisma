@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  pseudo       String
+  email        String        @unique
+  password     String
+  createdAt    DateTime      @default(now())
+  clients      Client[]
+  appointments Appointment[]
+  sales        Sale[]
+}
+
+model Client {
+  id           Int           @id @default(autoincrement())
+  name         String
+  firstName    String
+  address      String
+  city         String
+  postalCode   String
+  email        String        @unique
+  phone        String?
+  projectType  String
+  status       ClientStatus
+  createdAt    DateTime      @default(now())
+  userId       Int
+  user         User          @relation(fields: [userId], references: [id])
+  appointments Appointment[]
+  sales        Sale[]
+}
+
+model Appointment {
+  id       Int               @id @default(autoincrement())
+  date     DateTime?
+  status   AppointmentStatus
+  comment  String?
+  clientId Int
+  userId   Int
+  client   Client            @relation(fields: [clientId], references: [id])
+  user     User              @relation(fields: [userId], references: [id])
+
+  @@map("appointment")
+}
+
+model Sale {
+  id         Int        @id @default(autoincrement())
+  amount     Float
+  commission Float?
+  status     SaleStatus
+  signedAt   DateTime?
+  clientId   Int
+  userId     Int
+  client     Client     @relation(fields: [clientId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
+
+  @@map("sale")
+}
+
+enum ClientStatus {
+  PROSPECT
+  NEGOCIATION
+  DEVIS_ENVOYE
+  SIGNE
+  PERDU
+}
+
+enum SaleStatus {
+  EN_ATTENTE
+  ANNULEE
+  TERMINEE
+}
+
+enum AppointmentStatus {
+  PLANIFIE
+  TERMINE
+  ANNULE
+}
