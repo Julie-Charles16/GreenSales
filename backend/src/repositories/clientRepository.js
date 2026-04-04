@@ -10,6 +10,12 @@ const getClientById = (id) => {
   });
 };
 
+const getClientByEmail = (email) => {
+  return prisma.client.findUnique({
+    where: { email },
+  });
+};
+
 const createClient = (data) => {
   return prisma.client.create({ data });
 };
@@ -30,6 +36,7 @@ const deleteClient = (id) => {
 module.exports = {
   getAllClients,
   getClientById,
+  getClientByEmail,
   createClient,
   updateClient,
   deleteClient,
