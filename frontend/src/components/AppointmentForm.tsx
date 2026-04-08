@@ -86,7 +86,7 @@ const AppointmentForm: React.FC<Props> = ({
       />
 
       <button type="submit">Enregistrer</button>
-      <button type="button">Annuler</button>
+      <button type="submit">Annuler</button>
     </form>
   );
 };
