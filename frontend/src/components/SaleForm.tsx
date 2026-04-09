@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { Sale, SaleFormData, SaleStatus } from "../types/sale";
 import type { Client } from "../types/client";
 
 interface Props {
   onSubmit: (data: SaleFormData) => void;
+  onCancel: () => void;
   clients: Client[];
   initialData?: Sale | null;
-  onCancel?: () => void;
 }
 
 const getInitialForm = (
@@ -21,33 +21,40 @@ const getInitialForm = (
 
 const SaleForm: React.FC<Props> = ({
   onSubmit,
+  onCancel,
   clients,
   initialData,
-  onCancel,
 }) => {
   const [formData, setFormData] = useState<SaleFormData>(
     getInitialForm(initialData, clients)
   );
 
+  // 🔹 si initialData change (modification), mettre à jour le formulaire
+  useEffect(() => {
+    setFormData(getInitialForm(initialData, clients));
+  }, [initialData, clients]);
+
+  
+  
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ): void => {
+  ) => {
     const { name, value } = e.target;
 
-    setFormData((prev) => ({
-      ...prev,
+    setFormData({
+      ...formData,
       [name]:
-        name === "amount" || name === "clientId" || name === "userId"
+        name === "amount" || name === "clientId"
           ? Number(value)
           : value,
-    }));
+    });
   };
 
-  const handleSubmit = (e: React.FormEvent): void => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     onSubmit(formData);
 
+    // réinitialiser formulaire si nouvelle vente
     if (!initialData) {
       setFormData(getInitialForm(null, clients));
     }
@@ -55,36 +62,58 @@ const SaleForm: React.FC<Props> = ({
 
   return (
     <form onSubmit={handleSubmit}>
-      <input
-        type="number"
-        name="amount"
-        placeholder="Montant (€)"
-        value={formData.amount}
-        onChange={handleChange}
-        required
-      />
+      <div className="mb-2">
+        <input
+          className="form-control"
+          type="number"
+          name="amount"
+          value={formData.amount}
+          onChange={handleChange}
+          placeholder="Montant (€)"
+        />
+      </div>
 
-      <select name="status" value={formData.status} onChange={handleChange}>
-        <option value="EN_ATTENTE">En attente</option>
-        <option value="ANNULEE">Annulée</option>
-        <option value="TERMINEE">Terminée</option>
-      </select>
+      <div className="mb-2">
+        <select
+          className="form-select"
+          name="status"
+          value={formData.status}
+          onChange={handleChange}
+        >
+          <option value="EN_ATTENTE">En attente</option>
+          <option value="ANNULEE">Annulée</option>
+          <option value="TERMINEE">Terminée</option>
+        </select>
+      </div>
 
-      <select name="clientId" value={formData.clientId} onChange={handleChange}>
-        {clients.map((client) => (
-          <option key={client.id} value={client.id}>
-            {client.name} {client.firstName}
-          </option>
-        ))}
-      </select>
+      <div className="mb-2">
+        <select
+          className="form-select"
+          name="clientId"
+          value={formData.clientId}
+          onChange={handleChange}
+        >
+          {clients.map((client) => (
+            <option key={client.id} value={client.id}>
+              {client.name} {client.firstName}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      <button type="submit">Enregistrer</button>
-
-      {onCancel && (
-        <button type="button" onClick={onCancel}>
+      <div className="d-flex justify-content-end gap-2 mt-3">
+        <button
+          type="button"
+          className="btn btn-outline-secondary"
+          onClick={onCancel}
+        >
           Annuler
         </button>
-      )}
+
+        <button type="submit" className="btn btn-primary">
+          Enregistrer
+        </button>
+      </div>
     </form>
   );
 };

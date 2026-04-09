@@ -5,8 +5,9 @@ const Navbar: React.FC = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-3">
       <Link className="navbar-brand fw-bold" to="/">
-        <i className="bi bi-speedometer2 me-2"></i>
-        CRM
+        {/* <i className="bi bi-speedometer2 me-2"></i> */}
+        <i className="bi bi-leaf-fill me-2"></i>
+        GreenSales
       </Link>
 
       <button
