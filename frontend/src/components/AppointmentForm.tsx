@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef} from "react";
 import type { Appointment, AppointmentFormData } from "../types/appointment";
 import type { Client } from "../types/client";
 
 interface Props {
   onSubmit: (data: AppointmentFormData) => void;
+  onCancel: () => void;
   clients: Client[];
   initialData?: Appointment | null;
 }
@@ -21,6 +22,7 @@ const getInitialForm = (
 
 const AppointmentForm: React.FC<Props> = ({
   onSubmit,
+  onCancel,
   clients,
   initialData,
 }) => {
@@ -28,18 +30,26 @@ const AppointmentForm: React.FC<Props> = ({
     getInitialForm(initialData, clients)
   );
 
+  // 🔥 FIX pré-remplissage
+  useEffect(() => {
+    setFormData(getInitialForm(initialData, clients));
+  }, [initialData, clients]);
+
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ): void => {
-    const { name, value } = e.target;
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const target = e.target;
 
     setFormData({
       ...formData,
-      [name]: name === "clientId" || name === "userId" ? Number(value) : value,
+      [target.name]:
+        target.name === "clientId" ? Number(target.value) : target.value,
     });
   };
 
-  const handleSubmit = (e: React.FormEvent): void => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     onSubmit({
@@ -47,46 +57,91 @@ const AppointmentForm: React.FC<Props> = ({
       date: new Date(formData.date).toISOString(),
     });
 
-    // reset uniquement en création
     if (!initialData) {
       setFormData(getInitialForm(null, clients));
     }
   };
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+const handleAutoResize = () => {
+  if (textareaRef.current) {
+    textareaRef.current.style.height = "auto";
+    textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
+  }
+};
+
   return (
     <form onSubmit={handleSubmit}>
-      <input
-        type="datetime-local"
-        name="date"
-        value={formData.date}
-        onChange={handleChange}
-        required
-      />
+      <div className="mb-2">
+        <label className="form-label">Date</label>
+        <input
+          type="datetime-local"
+          name="date"
+          className="form-control"
+          value={formData.date}
+          onChange={handleChange}
+          required
+        />
+      </div>
 
-      <select name="status" value={formData.status} onChange={handleChange}>
-        <option value="PLANIFIE">Planifié</option>
-        <option value="TERMINE">Terminé</option>
-        <option value="ANNULE">Annulé</option>
-      </select>
+      <div className="mb-2">
+        <label className="form-label">Client</label>
+        <select
+          name="clientId"
+          className="form-select"
+          value={formData.clientId}
+          onChange={handleChange}
+        >
+          {clients.map((client) => (
+            <option key={client.id} value={client.id}>
+              {client.name} {client.firstName}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      <select name="clientId" value={formData.clientId} onChange={handleChange}>
-        {clients.map((client) => (
-          <option key={client.id} value={client.id}>
-            {client.name} {client.firstName}
-          </option>
-        ))}
-      </select>
+      <div className="mb-2">
+        <label className="form-label">Statut</label>
+        <select
+          name="status"
+          className="form-select"
+          value={formData.status}
+          onChange={handleChange}
+        >
+          <option value="PLANIFIE">Planifié</option>
+          <option value="TERMINE">Terminé</option>
+          <option value="ANNULE">Annulé</option>
+        </select>
+      </div>
 
-      <input
-        type="text"
-        name="comment"
-        placeholder="Commentaire"
-        value={formData.comment}
-        onChange={handleChange}
-      />
+      <div className="mb-2">
+        <label className="form-label">Commentaire</label>
+        <textarea
+          name="comment"
+          className="form-control"
+          value={formData.comment}
+          placeholder="Commentaire"
+          onChange={(e) => {
+            handleChange(e);
+            handleAutoResize();
+          }}
+        />
+      </div>
 
-      <button type="submit">Enregistrer</button>
-      <button type="submit">Annuler</button>
+      <div className="d-flex justify-content-end gap-2 mt-3">
+        <button
+          type="button"
+          className="btn btn-outline-secondary"
+          onClick={onCancel}
+        >
+          Annuler
+        </button>
+
+        <button type="submit" className="btn btn-primary">
+          Enregistrer
+        </button>
+      </div>
     </form>
   );
 };
