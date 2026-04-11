@@ -11,6 +11,7 @@ import type { Sale, SaleFormData } from "../types/sale";
 import type { Client } from "../types/client";
 
 import SaleForm from "../components/SaleForm";
+import SalesPipeline from "../components/SalesPipeline";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Modal } from "bootstrap";
@@ -35,6 +36,7 @@ const SalesPage: React.FC = () => {
   const [formModal, setFormModal] = useState<Modal | null>(null);
   const [deleteModal, setDeleteModal] = useState<Modal | null>(null);
 
+  const [view, setView] = useState<"table" | "pipeline">("pipeline");
   // 🔹 init modales
   useEffect(() => {
     if (formModalRef.current)
@@ -95,6 +97,12 @@ const SalesPage: React.FC = () => {
       (filterStatus ? s.status === filterStatus : true)
   );
 
+  const totalCommission = filteredSales.reduce(
+    (acc, s) => acc + s.commission,
+    0
+  );
+  
+
   const statuses = Array.from(new Set(sales.map((s) => s.status)));
 
   // 🔹 actions
@@ -143,6 +151,14 @@ const SalesPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [toastMsg]);
 
+  const formatDate = (date: string) => {
+  return new Date(date).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+};
+
   return (
     <div className="container mt-4">
       {/* HEADER */}
@@ -179,6 +195,50 @@ const SalesPage: React.FC = () => {
       </div>
 
       {/* TABLE */}
+      {/* SWITCH + KPI */}
+      <div className="mb-3">
+
+        {/* KPI COMMISSION */}
+        <div className="alert alert-success d-flex justify-content-between align-items-center">
+          <span>💸 Commission totale</span>
+          <strong>{totalCommission} €</strong>
+        </div>
+
+        {/* <div className="alert alert-success shadow-sm rounded-4 d-flex justify-content-between">
+          <div>
+            <div className="small text-muted">Commission totale</div>
+            <div className="fs-5 fw-bold">{totalCommission} €</div>
+          </div>
+          <div className="fs-3">💸</div>
+        </div> */}
+
+        {/* SWITCH */}
+        <div className="btn-group">
+          <button
+            className={`btn btn-${view === "table" ? "primary" : "outline-primary"}`}
+            onClick={() => setView("table")}
+          >
+            📋 Table
+          </button>
+
+          <button
+            className={`btn btn-${view === "pipeline" ? "primary" : "outline-primary"}`}
+            onClick={() => setView("pipeline")}
+          >
+            📊 Pipeline
+          </button>
+        </div>
+
+      </div>
+
+      {view === "pipeline" ? (
+        <SalesPipeline
+        sales={filteredSales}
+        clients={clients}
+        onEdit={handleEdit}
+        onDelete={handleDeleteClick}
+      />
+      ) : (
       <div className="card shadow-sm">
         <div className="card-body">
           <table className="table table-hover align-middle">
@@ -187,42 +247,73 @@ const SalesPage: React.FC = () => {
                 <th>Client</th>
                 <th>Montant</th>
                 <th>Commission</th>
-                <th>Projet</th>
-                <th>Statut</th>
+                {/* <th>Projet</th> */}
+                <th >Statut</th>
                 <th>Signé le</th>
-                <th className="text-end">Actions</th>
+                <th>Actions</th>
               </tr>
             </thead>
 
             <tbody>
               {filteredSales.map((sale) => (
-                <tr key={sale.id}>
-                  <td>{getClientName(sale.clientId)}</td>
-                  <td>{sale.amount} €</td>
-                  <td>{sale.commission} €</td>
-                  <td>{getClientProjectType(sale.clientId)}</td>
+              <tr
+                key={sale.id}
+                className="table-row-hover"
+                style={{
+                  borderLeft: `4px solid ${
+                    sale.status === "TERMINEE"
+                      ? "#20c997"
+                      : sale.status === "ANNULEE"
+                      ? "#fa5252"
+                      : "#adb5bd"
+                  }`,
+                }}
+              >            
                   <td>
-                    <span className={`badge bg-${getStatusColor(sale.status)}`}>
+                    <div className="fw-semibold">
+                      {getClientName(sale.clientId)}
+                    </div>
+                    <small className="text-muted">
+                      {getClientProjectType(sale.clientId)}
+                    </small>
+                  </td>
+                  <td className="fw-bold text-success">
+                    {sale.amount} €
+                  </td>
+                  <td className="text-muted">
+                    {sale.commission} €
+                  </td>
+                  {/* <td>{getClientProjectType(sale.clientId)}</td> */}
+                  <td>
+                    <span
+                      className={`badge rounded-pill px-3 py-2 bg-${getStatusColor(
+                        sale.status
+                      )}`} 
+                    >
                       {sale.status}
                     </span>
                   </td>
-                  <td>{sale.signedAt}</td>
+                  <td>
+                    <small className="text-muted">
+                      {formatDate(sale.signedAt)}
+                    </small>
+                  </td>
 
-                  <td className="text-end">
-                
-                    <button
-                      className="btn btn-sm btn-outline-primary me-2"
-                      onClick={() => handleEdit(sale)}
-                    >
-                      Modifier
-                    </button>
-
-                    <button
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => handleDeleteClick(sale)}
-                    >
-                      Supprimer
-                    </button>
+                  <td>
+                    <div className="d-flex gap-2 mt-2">
+                      <button
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => handleEdit(sale)}
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => handleDeleteClick(sale)}
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -230,6 +321,7 @@ const SalesPage: React.FC = () => {
           </table>
         </div>
       </div>
+    )}
 
       {/* MODAL FORM */}
       <div className="modal fade" ref={formModalRef} tabIndex={-1}>

@@ -59,33 +59,16 @@ const SaleForm: React.FC<Props> = ({
       setFormData(getInitialForm(null, clients));
     }
   };
+const calculateCommission = (amount: number) => {
+  if (amount >= 20000) return amount * 0.10;
+  if (amount >= 10000) return amount * 0.07;
+  return amount * 0.05;
+};
+
+const commission = calculateCommission(formData.amount);
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="mb-2">
-        <input
-          className="form-control"
-          type="number"
-          name="amount"
-          value={formData.amount}
-          onChange={handleChange}
-          placeholder="Montant (€)"
-        />
-      </div>
-
-      <div className="mb-2">
-        <select
-          className="form-select"
-          name="status"
-          value={formData.status}
-          onChange={handleChange}
-        >
-          <option value="EN_ATTENTE">En attente</option>
-          <option value="ANNULEE">Annulée</option>
-          <option value="TERMINEE">Terminée</option>
-        </select>
-      </div>
-
       <div className="mb-2">
         <select
           className="form-select"
@@ -100,6 +83,34 @@ const SaleForm: React.FC<Props> = ({
           ))}
         </select>
       </div>
+      
+      <div className="mb-2">
+        <input
+          className="form-control"
+          type="number"
+          name="amount"
+          value={formData.amount}
+          onChange={handleChange}
+          placeholder="Montant (€)"
+        />
+      </div>
+      <p className="text-success mt-2">
+        💸 Commission estimée : <strong>{commission} €</strong>
+      </p>
+
+      <div className="mb-2">
+        <select
+          className="form-select"
+          name="status"
+          value={formData.status}
+          onChange={handleChange}
+        >
+          <option value="EN_ATTENTE">En attente</option>
+          <option value="ANNULEE">Annulée</option>
+          <option value="TERMINEE">Terminée</option>
+        </select>
+      </div>
+
 
       <div className="d-flex justify-content-end gap-2 mt-3">
         <button

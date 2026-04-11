@@ -23,3 +23,21 @@ input[type=number] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* Table sale*/
+.table-row-hover {
+  transition: all 0.2s ease;
+}
+
+.table-row-hover:hover {
+  background-color: #f8f9fa;
+  transform: scale(1.01);
+}
+
+/* Card pipeline */
+.card-column-hover {
+  transition: all 0.2s ease;
+}
+.card-column-hover:hover {
+  transform: scale(1.02);
+}
