@@ -1,38 +1,76 @@
 import React, { useEffect, useState, useRef } from "react";
-import { getClients, createClient, updateClient, deleteClient } from "../services/clientService";
 import type { Client, ClientFormData } from "../types/client";
-import ClientForm from "../components/ClientForm";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { getClients, createClient, updateClient, deleteClient } from "../services/clientService";
 import { Modal } from "bootstrap";
+
+import ClientsHeader from "../components/clients/ClientsHeader";
+import ClientsFilters from "../components/clients/ClientsFilters";
+import ClientsKPI from "../components/clients/ClientsKPI";
+import ClientsTable from "../components/clients/ClientsTable";
+import ClientsCards from "../components/clients/ClientsCards";
+import ClientForm from "../components/clients/modals/ClientFormModal";
+import ClientDetailModal from "../components/clients/modals/ClientDetailModal";
+import ClientDeleteModal from "../components/clients/modals/ClientDeleteModal";
+import ToastMessage from "../components/ToastMessage";
+
+import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 const ClientsPage: React.FC = () => {
+
+  // ==============================
+  // 🔹 STATE - données principales
+  // ==============================
   const [clients, setClients] = useState<Client[]>([]);
+
+  // ==============================
+  // 🔹 STATE - filtres & affichage
+  // ==============================
   const [search, setSearch] = useState("");
   const [filterCity, setFilterCity] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [view, setView] = useState<"table" | "cards">("table");
+
+  // ==============================
+  // 🔹 STATE - gestion modales / UI
+  // ==============================
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [detailClient, setDetailClient] = useState<Client | null>(null);
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
   const [toastMsg, setToastMsg] = useState("");
 
-  // 🔹 refs modales
+  // ==============================
+  // 🔹 REFS - modales Bootstrap
+  // ==============================
   const formModalRef = useRef<HTMLDivElement>(null);
   const detailModalRef = useRef<HTMLDivElement>(null);
   const deleteModalRef = useRef<HTMLDivElement>(null);
 
+  // ==============================
+  // 🔹 STATE - instances modales
+  // ==============================
   const [formModal, setFormModal] = useState<Modal | null>(null);
   const [detailModal, setDetailModal] = useState<Modal | null>(null);
   const [deleteModal, setDeleteModal] = useState<Modal | null>(null);
 
-  // 🔹 init modales
+  // ==============================
+  // 🔹 EFFECTS - initialisation
+  // ==============================
+
+  // Init Bootstrap modals
   useEffect(() => {
-    if (formModalRef.current) setFormModal(new Modal(formModalRef.current, { backdrop: 'static' }));
-    if (detailModalRef.current) setDetailModal(new Modal(detailModalRef.current));
-    if (deleteModalRef.current) setDeleteModal(new Modal(deleteModalRef.current));
+    if (formModalRef.current) {
+      setFormModal(new Modal(formModalRef.current, { backdrop: 'static' }));
+    }
+    if (detailModalRef.current) {
+      setDetailModal(new Modal(detailModalRef.current));
+    }
+    if (deleteModalRef.current) {
+      setDeleteModal(new Modal(deleteModalRef.current));
+    }
   }, []);
 
-  // 🔹 chargement clients
+  // Chargement initial des clients
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -45,12 +83,18 @@ const ClientsPage: React.FC = () => {
     void fetchClients();
   }, []);
 
-  const loadClients = async () => {
-    const data = await getClients();
-    setClients(data);
-  };
+  // Toast auto-disparition
+  useEffect(() => {
+    if (!toastMsg) return;
+    const timer = setTimeout(() => setToastMsg(""), 3000);
+    return () => clearTimeout(timer);
+  }, [toastMsg]);
 
-  // 🔹 filtres
+  // ==============================
+  // 🔹 DATA - calculées
+  // ==============================
+
+  // Liste filtrée + triée
   const filteredClients = clients
     .filter(c =>
       `${c.name} ${c.firstName} ${c.email}`.toLowerCase().includes(search.toLowerCase()) &&
@@ -58,6 +102,14 @@ const ClientsPage: React.FC = () => {
       (filterStatus ? c.status === filterStatus : true)
     )
     .sort((a, b) => a.name.localeCompare(b.name));
+
+  // Options filtres
+  const cities = Array.from(new Set(clients.map(c => c.city))).sort();
+  const statuses = Array.from(new Set(clients.map(c => c.status)));
+
+  // ==============================
+  // 🔹 HELPERS - utils UI
+  // ==============================
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -70,7 +122,28 @@ const ClientsPage: React.FC = () => {
     }
   };
 
-  // 🔹 actions
+  const getStatusBorderColor = (status: string) => {
+    switch (getStatusColor(status)) {
+      case "success": return "#20c997";
+      case "danger": return "#fa5252";
+      case "warning": return "#f59f00";
+      case "info": return "#339af0";
+      default: return "#adb5bd";
+    }
+  };
+
+  // ==============================
+  // 🔹 API - chargement
+  // ==============================
+  const loadClients = async () => {
+    const data = await getClients();
+    setClients(data);
+  };
+
+  // ==============================
+  // 🔹 ACTIONS - CRUD
+  // ==============================
+
   const handleAdd = () => {
     setEditingClient(null);
     formModal?.show();
@@ -81,11 +154,6 @@ const ClientsPage: React.FC = () => {
     formModal?.show();
   };
 
-  const handleViewDetail = (client: Client) => {
-    setDetailClient(client);
-    detailModal?.show();
-  };
-
   const handleSubmit = async (data: ClientFormData) => {
     if (editingClient) {
       await updateClient(editingClient.id, data);
@@ -94,17 +162,31 @@ const ClientsPage: React.FC = () => {
       await createClient(data);
       setToastMsg("Client ajouté !");
     }
+
     await loadClients();
     formModal?.hide();
   };
 
-  // 🔥 ouverture modal suppression
+  // ==============================
+  // 🔹 ACTIONS - détail
+  // ==============================
+  const handleViewDetail = (client: Client) => {
+    setDetailClient(client);
+    detailModal?.show();
+  };
+
+  const handleCloseDetail = () => {
+    detailModal?.hide();
+  };
+
+  // ==============================
+  // 🔹 ACTIONS - suppression
+  // ==============================
   const handleDeleteClick = (client: Client) => {
     setClientToDelete(client);
     deleteModal?.show();
   };
 
-  // 🔥 confirmation suppression
   const confirmDelete = async () => {
     if (!clientToDelete) return;
 
@@ -112,81 +194,58 @@ const ClientsPage: React.FC = () => {
     setToastMsg("Client supprimé !");
     setClientToDelete(null);
     deleteModal?.hide();
+
     await loadClients();
   };
-
-  // 🔹 filtres options
-  const cities = Array.from(new Set(clients.map(c => c.city))).sort();
-  const statuses = Array.from(new Set(clients.map(c => c.status)));
-
-  // 🔹 toast auto
-  useEffect(() => {
-    if (!toastMsg) return;
-    const timer = setTimeout(() => setToastMsg(""), 3000);
-    return () => clearTimeout(timer);
-  }, [toastMsg]);
 
   return (
     <div className="container mt-4">
 
       {/* HEADER */}
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>Clients</h2>
-        <button className="btn btn-primary" onClick={handleAdd}>+ Ajouter</button>
-      </div>
+      <ClientsHeader
+        view={view}
+        setView={setView}
+        onAdd={handleAdd}
+      />
 
       {/* FILTRES */}
-      <div className="row mb-3 g-2">
-        <div className="col-md-4">
-          <input className="form-control" placeholder="Rechercher..." value={search} onChange={e => setSearch(e.target.value)} />
-        </div>
-        <div className="col-md-4">
-          <select className="form-select" value={filterCity} onChange={e => setFilterCity(e.target.value)}>
-            <option value="">Toutes les villes</option>
-            {cities.map(city => <option key={city}>{city}</option>)}
-          </select>
-        </div>
-        <div className="col-md-4">
-          <select className="form-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-            <option value="">Tous statuts</option>
-            {statuses.map(status => <option key={status}>{status}</option>)}
-          </select>
-        </div>
-      </div>
+      <ClientsFilters
+        search={search}
+        setSearch={setSearch}
+        filterCity={filterCity}
+        setFilterCity={setFilterCity}
+        filterStatus={filterStatus}
+        setFilterStatus={setFilterStatus}
+        cities={cities}
+        statuses={statuses}
+      />
+      {/* KPI MINI */}
+      <ClientsKPI clients={filteredClients}/>
 
       {/* TABLE */}
-      <div className="card shadow-sm">
-        <div className="card-body">
-          <table className="table table-hover align-middle">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Email</th>
-                <th>Ville</th>
-                <th>Statut</th>
-                <th className="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredClients.map(client => (
-                <tr key={client.id}>
-                  <td>{client.name} {client.firstName}</td>
-                  <td>{client.email}</td>
-                  <td>{client.city}</td>
-                  <td><span className={`badge bg-${getStatusColor(client.status)}`}>{client.status}</span></td>
-                  <td className="text-end">
-                    <button className="btn btn-sm btn-outline-info me-2" onClick={() => handleViewDetail(client)}>Voir</button>
-                    <button className="btn btn-sm btn-outline-primary me-2" onClick={() => handleEdit(client)}>Modifier</button>
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteClick(client)}>Supprimer</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {view === "table" && (
+      <ClientsTable
+        clients={filteredClients}
+        getStatusColor={getStatusColor}
+        getStatusBorderColor={getStatusBorderColor}
+        onView={handleViewDetail}
+        onEdit={handleEdit}
+        onDelete={handleDeleteClick}
+      />
+      )}
+      
+      {/* CARDS */}
+      {view === "cards" && (
+      <ClientsCards
+        clients={filteredClients}
+        getStatusColor={getStatusColor}
+        onView={handleViewDetail}
+        onEdit={handleEdit}
+        onDelete={handleDeleteClick}
+      />
+      )}
 
-      {/* MODAL FORM */}
+      {/* MODAL FORM ADD/EDIT*/}
       <div className="modal fade" ref={formModalRef} tabIndex={-1}>
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
@@ -195,72 +254,39 @@ const ClientsPage: React.FC = () => {
               <button className="btn-close" onClick={() => formModal?.hide()}></button>
             </div>
             <div className="modal-body">
-              <ClientForm initialData={editingClient} onSubmit={handleSubmit} onCancel={() => formModal?.hide()} />
+              <ClientForm
+                key={editingClient?.id || "new"}
+                initialData={editingClient}
+                onSubmit={handleSubmit}
+                onCancel={() => formModal?.hide()}
+              />     
             </div>
           </div>
         </div>
       </div>
 
       {/* MODAL DETAIL */}
-      <div className="modal fade" ref={detailModalRef} tabIndex={-1}>
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5>Détails</h5>
-              <button className="btn-close" onClick={() => detailModal?.hide()}></button>
-            </div>
-            <div className="modal-body">
-               {detailClient && (
-                <div>
-                  <p><strong>Nom :</strong> {detailClient.name} {detailClient.firstName}</p>
-                  <p><strong>Email :</strong> {detailClient.email}</p>
-                  <p><strong>Adresse :</strong> {detailClient.address}, {detailClient.city} {detailClient.postalCode}</p>
-                  <p><strong>Téléphone :</strong> {detailClient.phone}</p>
-                  <p><strong>Projet :</strong> {detailClient.projectType}</p>
-                  <p><strong>Statut :</strong> <span className={`badge bg-${getStatusColor(detailClient.status)}`}>{detailClient.status}</span></p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <ClientDetailModal
+        client={detailClient}
+        modalRef={detailModalRef}
+        onClose={handleCloseDetail}
+        getStatusColor={getStatusColor}
+      />
 
       {/* 🔥 MODAL DELETE */}
-      <div className="modal fade" ref={deleteModalRef} tabIndex={-1}>
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="text-danger">⚠️ Supprimer</h5>
-              <button className="btn-close" onClick={() => deleteModal?.hide()}></button>
-            </div>
-            <div className="modal-body">
-              <p>Voulez-vous vraiment supprimer ce client ?</p>
-              {clientToDelete && (
-                <div className="alert alert-light border">
-                  <strong>{clientToDelete.name} {clientToDelete.firstName}</strong>
-                  <br />
-                  <small>{clientToDelete.email}</small>
-                </div>
-              )}
-              <p className="text-danger mb-0">Action irréversible</p>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => deleteModal?.hide()}>Annuler</button>
-              <button className="btn btn-danger" onClick={confirmDelete}>Supprimer</button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ClientDeleteModal
+        client={clientToDelete}
+        modalRef={deleteModalRef}
+        onClose={() => deleteModal?.hide()}
+        onConfirm={confirmDelete}
+      />
 
       {/* TOAST */}
-      <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 9999 }}>
-        <div className={`toast align-items-center text-bg-success ${toastMsg ? "show" : ""}`} role="alert">
-          <div className="d-flex">
-            <div className="toast-body">{toastMsg}</div>
-            <button type="button" className="btn-close btn-close-white me-2 m-auto" onClick={() => setToastMsg("")}></button>
-          </div>
-        </div>
-      </div>
+      <ToastMessage
+        message={toastMsg}
+        onClose={() => setToastMsg("")}
+        variant="success"
+      />
     </div>
   );
 };
