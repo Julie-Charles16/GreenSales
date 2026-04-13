@@ -5,8 +5,8 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import frLocale from "@fullcalendar/core/locales/fr";
 
-import type { Appointment } from "../types/appointment";
-import type { Client } from "../types/client";
+import type { Appointment } from "../../types/appointment";
+import type { Client } from "../../types/client";
 import { Tooltip } from "bootstrap";
 
 interface Props {

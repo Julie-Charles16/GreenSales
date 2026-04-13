@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef} from "react";
-import type { Appointment, AppointmentFormData } from "../types/appointment";
-import type { Client } from "../types/client";
+import type { Appointment, AppointmentFormData } from "../../../types/appointment";
+import type { Client } from "../../../types/client";
 
 interface Props {
   onSubmit: (data: AppointmentFormData) => void;
@@ -72,9 +72,21 @@ const handleAutoResize = () => {
 };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-2">
-        <label className="form-label">Date</label>
+    
+    <div className="card shadow-sm p-4">
+  <h5 className="mb-4 text-primary">
+    <i className="bi bi-calendar-check me-2"></i>
+    {initialData?.id ? "Modifier le rendez-vous" : "Nouveau rendez-vous"}
+  </h5>
+
+  <form onSubmit={handleSubmit}>
+    {/* Date */}
+    <div className="mb-3">
+      <label className="form-label fw-semibold">Date</label>
+      <div className="input-group">
+        <span className="input-group-text">
+          <i className="bi bi-calendar-event"></i>
+        </span>
         <input
           type="datetime-local"
           name="date"
@@ -84,9 +96,15 @@ const handleAutoResize = () => {
           required
         />
       </div>
+    </div>
 
-      <div className="mb-2">
-        <label className="form-label">Client</label>
+    {/* Client */}
+    <div className="mb-3">
+      <label className="form-label fw-semibold">Client</label>
+      <div className="input-group">
+        <span className="input-group-text">
+          <i className="bi bi-person"></i>
+        </span>
         <select
           name="clientId"
           className="form-select"
@@ -100,9 +118,15 @@ const handleAutoResize = () => {
           ))}
         </select>
       </div>
+    </div>
 
-      <div className="mb-2">
-        <label className="form-label">Statut</label>
+    {/* Statut */}
+    <div className="mb-3">
+      <label className="form-label fw-semibold">Statut</label>
+      <div className="input-group">
+        <span className="input-group-text">
+          <i className="bi bi-flag"></i>
+        </span>
         <select
           name="status"
           className="form-select"
@@ -114,35 +138,47 @@ const handleAutoResize = () => {
           <option value="ANNULE">Annulé</option>
         </select>
       </div>
+    </div>
 
-      <div className="mb-2">
-        <label className="form-label">Commentaire</label>
+    {/* Commentaire */}
+    <div className="mb-4">
+      <label className="form-label fw-semibold">Commentaire</label>
+      <div className="input-group">
+        <span className="input-group-text">
+          <i className="bi bi-chat-left-text"></i>
+        </span>
         <textarea
           name="comment"
           className="form-control"
           value={formData.comment}
-          placeholder="Commentaire"
+          placeholder="Ajouter un commentaire..."
           onChange={(e) => {
             handleChange(e);
             handleAutoResize();
           }}
+          rows={2}
         />
       </div>
+    </div>
 
-      <div className="d-flex justify-content-end gap-2 mt-3">
-        <button
-          type="button"
-          className="btn btn-outline-secondary"
-          onClick={onCancel}
-        >
-          Annuler
-        </button>
+    {/* Boutons */}
+    <div className="d-flex justify-content-between">
+      <button
+        type="button"
+        className="btn btn-outline-secondary"
+        onClick={onCancel}
+      >
+        <i className="bi bi-x-circle me-1"></i>
+        Annuler
+      </button>
 
-        <button type="submit" className="btn btn-primary">
-          Enregistrer
-        </button>
-      </div>
-    </form>
+      <button type="submit" className="btn btn-primary">
+        <i className="bi bi-check-circle me-1"></i>
+        Enregistrer
+      </button>
+    </div>
+  </form>
+</div>
   );
 };
 

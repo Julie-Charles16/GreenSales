@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
+import { Modal } from "bootstrap";
+
 import {
   getAppointments,
   createAppointment,
@@ -10,11 +12,17 @@ import { getClients } from "../services/clientService";
 import type { Appointment, AppointmentFormData } from "../types/appointment";
 import type { Client } from "../types/client";
 
-import AppointmentCalendar from "../components/AppointmentCalendar";
-import AppointmentForm from "../components/AppointmentForm";
+import AppointmentCalendar from "../components/appointment/AppointmentCalendar";
+import AppointmentsTable from "../components/appointment/AppointmentsTable";
+import AppointmentsCards from "../components/appointment/AppointmentsCards";
+import AppointmentForm from "../components/appointment/modals/AppointmentFormModal";
+import AppointmentsHeader from "../components/appointment/AppointmentsHeader";
+import AppointmentsKPI from "../components/appointment/AppointmentsKPI";
+import AppointmentsFilters from "../components/appointment/AppointmentsFilters";
+import AppointmentDeleteModal from "../components/appointment/modals/AppointmentDeleteModal";
+import ToastMessage from "../components/ToastMessage";
 
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Modal } from "bootstrap";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const AppointmentsPage: React.FC = () => {
@@ -25,6 +33,12 @@ const AppointmentsPage: React.FC = () => {
   const [toDelete, setToDelete] = useState<Appointment | null>(null);
 
   const [toastMsg, setToastMsg] = useState("");
+
+  const [viewMode, setViewMode] = useState<"calendar" | "list" | "cards">("calendar");
+
+  // ✅ FILTRES (placés AVANT utilisation)
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
 
   // 🔹 refs modales
   const formModalRef = useRef<HTMLDivElement>(null);
@@ -67,30 +81,81 @@ const AppointmentsPage: React.FC = () => {
     return client ? `${client.name} ${client.firstName}` : "Client inconnu";
   };
 
+  const getClientProjectType = (clientId: number) => {
+    const client = clients.find((c) => c.id === clientId);
+    return client?.projectType || "Non défini";
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "PLANIFIE": return "info";
+      case "ANNULE": return "warning";
+      case "TERMINE": return "success";
+      default: return "secondary";
+    }
+  };
+
+  const getStatusBorderColor = (status: string) => {
+    switch (getStatusColor(status)) {
+      case "warning": return "#f59f00";
+      case "success": return "#20c997";
+      case "info": return "#339af0";
+      default: return "#adb5bd";
+    }
+  };
+
+  // ✅ STATUSES dynamiques
+  const statuses = Array.from(new Set(appointments.map((a) => a.status)));
+
+  // ✅ FILTRE CORRIGÉ
+  const filteredAppointments = appointments
+    .filter((appt) => {
+      const client = clients.find((c) => c.id === appt.clientId);
+
+      const searchable = `
+        ${client?.name || ""}
+        ${client?.firstName || ""}
+        ${client?.email || ""}
+      `.toLowerCase();
+
+      return (
+        searchable.includes(search.toLowerCase()) &&
+        (filterStatus ? appt.status === filterStatus : true)
+      );
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
   // 🔹 actions calendrier
   const handleEventClick = (appt: Appointment) => {
     setEditing(appt);
     formModal?.show();
   };
 
-  
   const handleDateClick = (date: string) => {
-  const formattedDate = new Date(date);
+    const formattedDate = new Date(date);
+    formattedDate.setHours(9, 0, 0, 0);
 
-  // 👉 heure par défaut (optionnel mais UX ++)
-  formattedDate.setHours(9, 0, 0, 0);
+    setEditing({
+      id: 0,
+      date: formattedDate.toISOString().slice(0, 16),
+      status: "PLANIFIE",
+      comment: "",
+      clientId: clients[0]?.id || 1,
+      userId: 1,
+    });
 
-  setEditing({
-    id: 0,
-    date: formattedDate.toISOString().slice(0, 16), // 🔥 IMPORTANT
-    status: "PLANIFIE",
-    comment: "",
-    clientId: clients[0]?.id || 1,
-    userId: 1,
-  });
-
-  formModal?.show();
-};
+    formModal?.show();
+  };
 
   // 🔹 submit
   const handleSubmit = async (data: AppointmentFormData) => {
@@ -133,18 +198,79 @@ const AppointmentsPage: React.FC = () => {
 
   return (
     <div className="container mt-4">
-      <h2 className="mb-3">📅 Rendez-vous</h2>
+      <AppointmentsHeader
+        view={viewMode}
+        setView={setViewMode}
+        onAdd={() => {
+          handleDateClick(new Date().toISOString());
+        }}
+      />
+      
+      <AppointmentsFilters
+        search={search}
+        setSearch={setSearch}
+        filterStatus={filterStatus}
+        setFilterStatus={setFilterStatus}
+        statuses={statuses}
+      />
+
+      <AppointmentsKPI appointments={filteredAppointments} />
+
 
       {/* CALENDRIER */}
+      {viewMode === "calendar" && (
       <AppointmentCalendar
-        appointments={appointments}
+        appointments={filteredAppointments}
         clients={clients}
         getClientName={getClientName}
         onEventClick={handleEventClick}
         onDateClick={handleDateClick}
       />
+      )}
 
-      {/* MODAL FORM */}
+      {/* LISTE */}
+      {viewMode === "list" && (
+      <AppointmentsTable
+        appointments={filteredAppointments}
+        clients={clients}
+        getClientName={getClientName}
+        getClientProjectType={getClientProjectType}
+        getStatusColor={getStatusColor}
+        getStatusBorderColor={getStatusBorderColor}
+        formatDate={formatDate}
+        onEdit={(appt) => {
+          setEditing(appt);
+          formModal?.show();
+        }}
+        onDelete={(appt) => {
+          setToDelete(appt);
+          deleteModal?.show();
+        }}
+      />
+      )}
+
+      {/* CARDS */}
+      {viewMode === "cards" && (
+      <AppointmentsCards
+        appointments={filteredAppointments}
+        clients={clients}
+        getClientName={getClientName}
+        getClientProjectType={getClientProjectType}
+        getStatusColor={getStatusColor}
+        getStatusBorderColor={getStatusBorderColor}
+        formatDate={formatDate}
+        onEdit={(appt) => {
+          setEditing(appt);
+          formModal?.show();
+        }}
+        onDelete={(appt) => {
+          setToDelete(appt);
+          deleteModal?.show();
+        }}
+      />
+      )}
+
+      {/* MODAL FORM ADD/EDIT */}
       <div className="modal fade" ref={formModalRef}>
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
@@ -182,67 +308,20 @@ const AppointmentsPage: React.FC = () => {
       </div>
 
       {/* MODAL DELETE */}
-      <div className="modal fade" ref={deleteModalRef}>
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="text-danger">⚠️ Supprimer</h5>
-              <button
-                className="btn-close"
-                onClick={() => deleteModal?.hide()}
-              ></button>
-            </div>
-
-            <div className="modal-body">
-              <p>Supprimer ce rendez-vous ?</p>
-
-              {toDelete && (
-                <div className="alert alert-light border">
-                  <strong>{getClientName(toDelete.clientId)}</strong>
-                  <br />
-                  <small>
-                    {new Date(toDelete.date).toLocaleString("fr-FR", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </small>
-                </div>
-              )}
-            </div>
-
-            <div className="modal-footer">
-              <button
-                className="btn btn-secondary"
-                onClick={() => deleteModal?.hide()}
-              >
-                Annuler
-              </button>
-
-              <button className="btn btn-danger" onClick={confirmDelete}>
-                Supprimer
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AppointmentDeleteModal
+        appointment={toDelete}
+        modalRef={deleteModalRef}
+        onClose={() => deleteModal?.hide()}
+        onConfirm={confirmDelete}
+        getClientName={getClientName}
+      />
 
       {/* TOAST */}
-      <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 9999 }}>
-        <div
-          className={`toast text-bg-success ${toastMsg ? "show" : ""}`}
-        >
-          <div className="d-flex">
-            <div className="toast-body">{toastMsg}</div>
-            <button
-              className="btn-close btn-close-white me-2 m-auto"
-              onClick={() => setToastMsg("")}
-            ></button>
-          </div>
-        </div>
-      </div>
+      <ToastMessage
+        message={toastMsg}
+        onClose={() => setToastMsg("")}
+        variant="success"
+      />
     </div>
   );
 };
