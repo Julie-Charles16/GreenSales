@@ -1,16 +1,16 @@
 interface Props {
-  view: "table" | "cards";
-  setView: (view: "table" | "cards") => void;
+  view: "table" | "pipeline";
+  setView: (view: "table" | "pipeline") => void;
   onAdd: () => void;
 }
 
-const ClientsHeader: React.FC<Props> = ({ view, setView, onAdd }) => {
-  return (
-    <div className="d-flex justify-content-between align-items-center mb-4">
+const SalesHeader: React.FC<Props> = ({ view, setView, onAdd }) => {
+    return (
+        <div className="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h2 className="fw-bold">Clients</h2>
+        <h2 className="fw-bold">Ventes</h2>
         <small className="text-muted">
-          Gérez et suivez vos relations clients
+          Suivez et gérez vos opportunités commerciales
         </small>
       </div>
 
@@ -24,10 +24,10 @@ const ClientsHeader: React.FC<Props> = ({ view, setView, onAdd }) => {
           </button>
 
           <button
-            className={`btn ${view === "cards" ? "btn-dark" : "btn-outline-dark"}`}
-            onClick={() => setView("cards")}
+            className={`btn ${view === "pipeline" ? "btn-dark" : "btn-outline-dark"}`}
+            onClick={() => setView("pipeline")}
           >
-            Cartes
+            Pipeline
           </button>
         </div>
         <button className="btn btn-primary" onClick={onAdd}>
@@ -35,7 +35,7 @@ const ClientsHeader: React.FC<Props> = ({ view, setView, onAdd }) => {
         </button>
       </div>
     </div>
-  );
+    );
 };
 
-export default ClientsHeader;
+export default SalesHeader;

@@ -32,13 +32,13 @@ const Navbar: React.FC = () => {
             </Link>
           </li>
           <li className="nav-item">
-            <Link className="nav-link" to="/appointments">
-              <i className="bi bi-calendar-event me-1"></i> Rendez-vous
+            <Link className="nav-link" to="/sales">
+              <i className="bi bi-cash-stack me-1"></i> Ventes
             </Link>
           </li>
           <li className="nav-item">
-            <Link className="nav-link" to="/sales">
-              <i className="bi bi-cash-stack me-1"></i> Ventes
+            <Link className="nav-link" to="/appointments">
+              <i className="bi bi-calendar-event me-1"></i> Rendez-vous
             </Link>
           </li>
         </ul>

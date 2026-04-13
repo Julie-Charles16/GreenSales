@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { Modal } from "bootstrap";
 import {
   getSales,
   createSale,
@@ -10,42 +11,67 @@ import { getClients } from "../services/clientService";
 import type { Sale, SaleFormData } from "../types/sale";
 import type { Client } from "../types/client";
 
-import SaleForm from "../components/SaleForm";
-import SalesPipeline from "../components/SalesPipeline";
+import SalesHeader from "../components/sales/SalesHeader";
+import SalesFilters from "../components/sales/SalesFilters";
+import SalesKPI from "../components/sales/SalesKPI";
+import SalesPipeline from "../components/sales/SalesPipeline";
+import SalesTable from "../components/sales/SalesTable";
+import SaleForm from "../components/sales/modals/SaleFormModal";
+import SaleDeleteModal from "../components/sales/modals/SaleDeleteModal";
+import ToastMessage from "../components/ToastMessage";
 
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Modal } from "bootstrap";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const SalesPage: React.FC = () => {
+
+  // ==============================
+  // 🔹 STATE - données principales
+  // ==============================
   const [sales, setSales] = useState<Sale[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
 
+  // ==============================
+  // 🔹 STATE - filtres & affichage
+  // ==============================
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [view, setView] = useState<"table" | "pipeline">("pipeline");
 
+  // ==============================
+  // 🔹 STATE - gestion UI / modales
+  // ==============================
   const [editingSale, setEditingSale] = useState<Sale | null>(null);
   const [saleToDelete, setSaleToDelete] = useState<Sale | null>(null);
-
   const [toastMsg, setToastMsg] = useState("");
 
-  // 🔹 refs modales
+  // ==============================
+  // 🔹 REFS - modales Bootstrap
+  // ==============================
   const formModalRef = useRef<HTMLDivElement>(null);
   const deleteModalRef = useRef<HTMLDivElement>(null);
 
+  // ==============================
+  // 🔹 STATE - instances modales
+  // ==============================
   const [formModal, setFormModal] = useState<Modal | null>(null);
   const [deleteModal, setDeleteModal] = useState<Modal | null>(null);
 
-  const [view, setView] = useState<"table" | "pipeline">("pipeline");
-  // 🔹 init modales
+  // ==============================
+  // 🔹 EFFECTS - initialisation
+  // ==============================
+
+  // Init Bootstrap modals
   useEffect(() => {
-    if (formModalRef.current)
+    if (formModalRef.current) {
       setFormModal(new Modal(formModalRef.current, { backdrop: "static" }));
-    if (deleteModalRef.current)
+    }
+    if (deleteModalRef.current) {
       setDeleteModal(new Modal(deleteModalRef.current));
+    }
   }, []);
 
-  // 🔹 load data
+  // Chargement initial (sales + clients)
   useEffect(() => {
     const fetchData = async () => {
       const [salesData, clientsData] = await Promise.all([
@@ -59,21 +85,63 @@ const SalesPage: React.FC = () => {
     void fetchData();
   }, []);
 
+  // Toast auto-disparition
+  useEffect(() => {
+    if (!toastMsg) return;
+    const timer = setTimeout(() => setToastMsg(""), 3000);
+    return () => clearTimeout(timer);
+  }, [toastMsg]);
+
+  // ==============================
+  // 🔹 API - chargement
+  // ==============================
   const loadSales = async () => {
     const data = await getSales();
     setSales(data);
   };
+  
+  // ==============================
+  // 🔹 HELPERS - utils métier
+  // ==============================
 
-  // 🔹 helpers
   const getClientName = (clientId: number) => {
     const client = clients.find((c) => c.id === clientId);
-    return client ? `${client.name} ${client.firstName}` : "Client inconnu";
+    return client
+      ? `${client.name} ${client.firstName}`
+      : "Client inconnu";
   };
 
   const getClientProjectType = (clientId: number): string => {
-   const client = clients.find((c) => c.id === clientId);
-   return client ? client.projectType : "Non défini";
+    const client = clients.find((c) => c.id === clientId);
+    return client ? client.projectType : "Non défini";
   };
+  
+  // ==============================
+  // 🔹 DATA - calculées
+  // ==============================
+
+  // Filtrage
+  const filteredSales = sales.filter(
+    (s) =>
+      getClientName(s.clientId)
+        .toLowerCase()
+        .includes(search.toLowerCase()) &&
+      (filterStatus ? s.status === filterStatus : true)
+  );
+
+  // KPI
+  const totalCommission = filteredSales.reduce(
+    (acc, s) => acc + s.commission,
+    0
+  );
+
+  // Options filtres
+  const statuses = Array.from(new Set(sales.map((s) => s.status)));
+
+
+  // ==============================
+  // 🔹 HELPERS - utils UI
+  // ==============================
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -88,31 +156,25 @@ const SalesPage: React.FC = () => {
     }
   };
 
-  // 🔹 filtres
-  const filteredSales = sales.filter(
-    (s) =>
-      getClientName(s.clientId)
-        .toLowerCase()
-        .includes(search.toLowerCase()) &&
-      (filterStatus ? s.status === filterStatus : true)
-  );
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
 
-  const totalCommission = filteredSales.reduce(
-    (acc, s) => acc + s.commission,
-    0
-  );
-  
+  // ==============================
+  // 🔹 ACTIONS - CRUD
+  // ==============================
 
-  const statuses = Array.from(new Set(sales.map((s) => s.status)));
-
-  // 🔹 actions
   const handleAdd = () => {
-    setEditingSale(null); // nouvelle vente = formulaire vide
+    setEditingSale(null);
     formModal?.show();
   };
 
   const handleEdit = (sale: Sale) => {
-    setEditingSale(sale); // modification = pré-remplir
+    setEditingSale(sale);
     formModal?.show();
   };
 
@@ -129,6 +191,10 @@ const SalesPage: React.FC = () => {
     formModal?.hide();
   };
 
+  // ==============================
+  // 🔹 ACTIONS - suppression
+  // ==============================
+
   const handleDeleteClick = (sale: Sale) => {
     setSaleToDelete(sale);
     deleteModal?.show();
@@ -141,189 +207,57 @@ const SalesPage: React.FC = () => {
     setToastMsg("Vente supprimée !");
     setSaleToDelete(null);
     deleteModal?.hide();
+
     await loadSales();
   };
-
-  // 🔹 toast auto
-  useEffect(() => {
-    if (!toastMsg) return;
-    const timer = setTimeout(() => setToastMsg(""), 3000);
-    return () => clearTimeout(timer);
-  }, [toastMsg]);
-
-  const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString("fr-FR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-};
 
   return (
     <div className="container mt-4">
       {/* HEADER */}
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>Ventes</h2>
-        <button className="btn btn-primary" onClick={handleAdd}>
-          + Ajouter
-        </button>
-      </div>
+      <SalesHeader
+        view={view}
+        setView={setView}
+        onAdd={handleAdd}
+      />
 
       {/* FILTRES */}
-      <div className="row mb-3 g-2">
-        <div className="col-md-6">
-          <input
-            className="form-control"
-            placeholder="Rechercher par client..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+      <SalesFilters
+        search={search}
+        setSearch={setSearch}
+        filterStatus={filterStatus}
+        setFilterStatus={setFilterStatus}
+        statuses={statuses}
+      />
 
-        <div className="col-md-6">
-          <select
-            className="form-select"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option value="">Tous statuts</option>
-            {statuses.map((status) => (
-              <option key={status}>{status}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+      {/* KPI COMMISSION */}
+      <SalesKPI sales={filteredSales} totalCommission={totalCommission} />
 
-      {/* TABLE */}
-      {/* SWITCH + KPI */}
-      <div className="mb-3">
 
-        {/* KPI COMMISSION */}
-        <div className="alert alert-success d-flex justify-content-between align-items-center">
-          <span>💸 Commission totale</span>
-          <strong>{totalCommission} €</strong>
-        </div>
-
-        {/* <div className="alert alert-success shadow-sm rounded-4 d-flex justify-content-between">
-          <div>
-            <div className="small text-muted">Commission totale</div>
-            <div className="fs-5 fw-bold">{totalCommission} €</div>
-          </div>
-          <div className="fs-3">💸</div>
-        </div> */}
-
-        {/* SWITCH */}
-        <div className="btn-group">
-          <button
-            className={`btn btn-${view === "table" ? "primary" : "outline-primary"}`}
-            onClick={() => setView("table")}
-          >
-            📋 Table
-          </button>
-
-          <button
-            className={`btn btn-${view === "pipeline" ? "primary" : "outline-primary"}`}
-            onClick={() => setView("pipeline")}
-          >
-            📊 Pipeline
-          </button>
-        </div>
-
-      </div>
-
-      {view === "pipeline" ? (
+      {/* Pipeline */}
+      {view === "pipeline" &&(
         <SalesPipeline
         sales={filteredSales}
         clients={clients}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
       />
-      ) : (
-      <div className="card shadow-sm">
-        <div className="card-body">
-          <table className="table table-hover align-middle">
-            <thead>
-              <tr>
-                <th>Client</th>
-                <th>Montant</th>
-                <th>Commission</th>
-                {/* <th>Projet</th> */}
-                <th >Statut</th>
-                <th>Signé le</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+      )}
+      {/* Tableau */}
+      {view === "table" &&(
+      <SalesTable
+        clients={clients}
+        sales={sales}
+        filteredSales={filteredSales}
+        getClientName={getClientName}
+        getClientProjectType={getClientProjectType}
+        getStatusColor={getStatusColor}
+        formatDate={formatDate}
+        onEdit={handleEdit}
+        onDelete={handleDeleteClick}
+      />
+      )}
 
-            <tbody>
-              {filteredSales.map((sale) => (
-              <tr
-                key={sale.id}
-                className="table-row-hover"
-                style={{
-                  borderLeft: `4px solid ${
-                    sale.status === "TERMINEE"
-                      ? "#20c997"
-                      : sale.status === "ANNULEE"
-                      ? "#fa5252"
-                      : "#adb5bd"
-                  }`,
-                }}
-              >            
-                  <td>
-                    <div className="fw-semibold">
-                      {getClientName(sale.clientId)}
-                    </div>
-                    <small className="text-muted">
-                      {getClientProjectType(sale.clientId)}
-                    </small>
-                  </td>
-                  <td className="fw-bold text-success">
-                    {sale.amount} €
-                  </td>
-                  <td className="text-muted">
-                    {sale.commission} €
-                  </td>
-                  {/* <td>{getClientProjectType(sale.clientId)}</td> */}
-                  <td>
-                    <span
-                      className={`badge rounded-pill px-3 py-2 bg-${getStatusColor(
-                        sale.status
-                      )}`} 
-                    >
-                      {sale.status}
-                    </span>
-                  </td>
-                  <td>
-                    <small className="text-muted">
-                      {formatDate(sale.signedAt)}
-                    </small>
-                  </td>
-
-                  <td>
-                    <div className="d-flex gap-2 mt-2">
-                      <button
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={() => handleEdit(sale)}
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        className="btn btn-sm btn-outline-danger"
-                        onClick={() => handleDeleteClick(sale)}
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    )}
-
-      {/* MODAL FORM */}
+      {/* MODAL FORM ADD/EDIT */}
       <div className="modal fade" ref={formModalRef} tabIndex={-1}>
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
@@ -347,65 +281,20 @@ const SalesPage: React.FC = () => {
       </div>
 
       {/* MODAL DELETE */}
-      <div className="modal fade" ref={deleteModalRef} tabIndex={-1}>
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="text-danger">⚠️ Supprimer</h5>
-              <button
-                className="btn-close"
-                onClick={() => deleteModal?.hide()}
-              ></button>
-            </div>
-            <div className="modal-body">
-              <p>Voulez-vous vraiment supprimer cette vente ?</p>
-
-              {saleToDelete && (
-                <div className="alert alert-light border">
-                  <strong>{getClientName(saleToDelete.clientId)}</strong>
-                  <br />
-                  <small>{saleToDelete.amount} €</small>
-                </div>
-              )}
-
-              <p className="text-danger mb-0">Action irréversible</p>
-            </div>
-
-            <div className="modal-footer">
-              <button
-                className="btn btn-secondary"
-                onClick={() => deleteModal?.hide()}
-              >
-                Annuler
-              </button>
-
-              <button className="btn btn-danger" onClick={confirmDelete}>
-                Supprimer
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <SaleDeleteModal
+        sale={saleToDelete}
+        modalRef={deleteModalRef}
+        getClientName={getClientName}
+        onClose={() => deleteModal?.hide()}
+        onConfirm={confirmDelete}
+       />
 
       {/* TOAST */}
-      <div
-        className="position-fixed top-0 end-0 p-3"
-        style={{ zIndex: 9999 }}
-      >
-        <div
-          className={`toast align-items-center text-bg-success ${
-            toastMsg ? "show" : ""
-          }`}
-        >
-          <div className="d-flex">
-            <div className="toast-body">{toastMsg}</div>
-            <button
-              className="btn-close btn-close-white me-2 m-auto"
-              onClick={() => setToastMsg("")}
-            ></button>
-          </div>
-        </div>
-      </div>
+      <ToastMessage
+        message={toastMsg}
+        onClose={() => setToastMsg("")}
+        variant="success"
+      />
     </div>
   );
 };
