@@ -1,14 +1,14 @@
 const appointmentRepository = require('../repositories/appointmentRepository');
 const clientRepository = require('../repositories/clientRepository');
 
-//  GET ALL
-const getAppointments = async () => {
-  return await appointmentRepository.getAllAppointments();
+// GET ALL (par user)
+const getAppointments = async (userId) => {
+  return await appointmentRepository.getAllAppointments(userId);
 };
 
-//  GET BY ID
-const getAppointment = async (id) => {
-  const appointment = await appointmentRepository.getAppointmentById(id);
+// GET BY ID (sécurisé)
+const getAppointment = async (id, userId) => {
+  const appointment = await appointmentRepository.getAppointmentById(id, userId);
 
   if (!appointment) {
     throw new Error('Rendez-vous non trouvé');
@@ -17,11 +17,10 @@ const getAppointment = async (id) => {
   return appointment;
 };
 
-//  CREATE
+// CREATE
 const createAppointment = async (data) => {
   const { clientId, userId, date } = data;
 
-  // ❌ VALIDATIONS
   if (!clientId || !userId || !date) {
     throw new Error('clientId, userId et date sont obligatoires');
   }
@@ -32,13 +31,13 @@ const createAppointment = async (data) => {
     throw new Error('Date invalide');
   }
 
-  //  Vérifier que le client existe
-  const client = await clientRepository.getClientById(clientId);
+  // 🔐 vérifier client appartenant au user
+  const client = await clientRepository.getClientById(clientId, userId);
+
   if (!client) {
     throw new Error('Client introuvable');
   }
 
-  //  règle métier : éviter doublon
   const existing = await appointmentRepository.findExistingAppointment(
     clientId,
     userId,
@@ -56,8 +55,14 @@ const createAppointment = async (data) => {
   });
 };
 
-//  UPDATE
-const updateAppointment = async (id, data) => {
+// UPDATE
+const updateAppointment = async (id, data, userId) => {
+  const appointment = await appointmentRepository.getAppointmentById(id, userId);
+
+  if (!appointment) {
+    throw new Error("Rendez-vous introuvable");
+  }
+
   if (data.date) {
     const appointmentDate = new Date(data.date);
 
@@ -68,12 +73,18 @@ const updateAppointment = async (id, data) => {
     data.date = appointmentDate;
   }
 
-  return await appointmentRepository.updateAppointment(id, data);
+  return await appointmentRepository.updateAppointment(id, data, userId);
 };
 
-//  DELETE
-const deleteAppointment = async (id) => {
-  return await appointmentRepository.deleteAppointment(id);
+// DELETE
+const deleteAppointment = async (id, userId) => {
+  const appointment = await appointmentRepository.getAppointmentById(id, userId);
+
+  if (!appointment) {
+    throw new Error("Rendez-vous introuvable");
+  }
+
+  return await appointmentRepository.deleteAppointment(id, userId);
 };
 
 module.exports = {

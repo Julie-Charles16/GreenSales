@@ -10,7 +10,6 @@ export interface Client {
   projectType: string;
   status: string;
   createdAt?: string;
-  userId: number;
 }
 
 export type ClientFormData = Omit<Client, "id">;

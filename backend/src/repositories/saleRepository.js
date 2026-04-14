@@ -5,32 +5,42 @@ async function create(data) {
   return await prisma.sale.create({ data });
 }
 
-// UPDATE
-async function update(id, data) {
-  return await prisma.sale.update({
-    where: { id: parseInt(id) },
+// UPDATE (sécurisé user)
+async function update(id, data, userId) {
+  return await prisma.sale.updateMany({
+    where: {
+      id: parseInt(id),
+      userId,
+    },
     data,
   });
 }
 
-// GET ALL
-async function findAll() {
+// GET ALL (par user)
+async function findAll(userId) {
   return await prisma.sale.findMany({
+    where: { userId },
     include: { client: true, user: true },
   });
 }
 
-// GET BY ID
-async function findById(id) {
-  return await prisma.sale.findUnique({
-    where: { id: parseInt(id) },
+// GET BY ID (sécurisé user)
+async function findById(id, userId) {
+  return await prisma.sale.findFirst({
+    where: {
+      id: parseInt(id),
+      userId,
+    },
   });
 }
 
-// DELETE
-async function remove(id) {
-  return await prisma.sale.delete({
-    where: { id: parseInt(id) },
+// DELETE (sécurisé user)
+async function remove(id, userId) {
+  return await prisma.sale.deleteMany({
+    where: {
+      id: parseInt(id),
+      userId,
+    },
   });
 }
 

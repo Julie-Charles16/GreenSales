@@ -17,7 +17,6 @@ const getInitialForm = (initialData?: Client | null): ClientFormData => ({
   phone: initialData?.phone || "",
   projectType: initialData?.projectType || "",
   status: initialData?.status || "PROSPECT",
-  userId: 1,
 });
 
 const ClientForm: React.FC<Props> = ({ onSubmit,onCancel, initialData }) => {

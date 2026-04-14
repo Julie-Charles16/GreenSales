@@ -1,18 +1,16 @@
 const saleRepository = require('../repositories/saleRepository');
 const clientRepository = require('../repositories/clientRepository');
 
-//  LOGIQUE MÉTIER : calcul commission
 function calculateCommission(amount) {
   if (amount >= 20000) return amount * 0.10;
   if (amount >= 10000) return amount * 0.07;
   return amount * 0.05;
 }
 
-//  CREATE
+// CREATE
 async function createSale(data) {
   const { amount, clientId, userId } = data;
 
-  //  VALIDATIONS
   if (!amount || amount <= 0) {
     throw new Error("Le montant doit être supérieur à 0");
   }
@@ -21,13 +19,13 @@ async function createSale(data) {
     throw new Error("clientId et userId sont obligatoires");
   }
 
-  //  Vérifier que le client existe
-  const client = await clientRepository.getClientById(clientId);
+  // 🔐 client appartenant au user
+  const client = await clientRepository.getClientById(clientId, userId);
+
   if (!client) {
     throw new Error("Client introuvable");
   }
 
-  //  Calcul commission
   const commission = calculateCommission(amount);
 
   return await saleRepository.create({
@@ -38,11 +36,16 @@ async function createSale(data) {
   });
 }
 
-//  UPDATE
-async function updateSale(id, data) {
+// UPDATE
+async function updateSale(id, data, userId) {
+  const sale = await saleRepository.findById(id, userId);
+
+  if (!sale) {
+    throw new Error("Vente introuvable");
+  }
+
   let updatedData = { ...data };
 
-  //  Vérifier si on modifie le montant
   if (data.amount) {
     if (data.amount <= 0) {
       throw new Error("Le montant doit être supérieur à 0");
@@ -51,17 +54,17 @@ async function updateSale(id, data) {
     updatedData.commission = calculateCommission(data.amount);
   }
 
-  return await saleRepository.update(id, updatedData);
+  return await saleRepository.update(id, updatedData, userId);
 }
 
-//  GET ALL
-async function getAllSales() {
-  return await saleRepository.findAll();
+// GET ALL
+async function getAllSales(userId) {
+  return await saleRepository.findAll(userId);
 }
 
-//  GET BY ID
-async function getSaleById(id) {
-  const sale = await saleRepository.findById(id);
+// GET BY ID
+async function getSaleById(id, userId) {
+  const sale = await saleRepository.findById(id, userId);
 
   if (!sale) {
     throw new Error("Vente introuvable");
@@ -70,9 +73,15 @@ async function getSaleById(id) {
   return sale;
 }
 
-//  DELETE
-async function deleteSale(id) {
-  return await saleRepository.remove(id);
+// DELETE
+async function deleteSale(id, userId) {
+  const sale = await saleRepository.findById(id, userId);
+
+  if (!sale) {
+    throw new Error("Vente introuvable");
+  }
+
+  return await saleRepository.remove(id, userId);
 }
 
 module.exports = {

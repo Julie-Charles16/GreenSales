@@ -1,40 +1,54 @@
 const saleService = require('../services/saleService');
 
-// GET
+// GET ALL
 exports.getAllSales = async (req, res) => {
   try {
-    const sales = await saleService.getAllSales();
+    const sales = await saleService.getAllSales(req.user.id);
     res.json(sales);
   } catch (err) {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
 
-// GET by ID
+// GET BY ID
 exports.getSale = async (req, res) => {
   try {
-    const sale = await saleService.getSaleById(req.params.id);
+    const sale = await saleService.getSaleById(
+      req.params.id,
+      req.user.id
+    );
+
     if (!sale) return res.status(404).json({ error: 'Vente non trouvée' });
+
     res.json(sale);
   } catch (err) {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
 
-// POST
+// CREATE
 exports.createSale = async (req, res) => {
   try {
-    const sale = await saleService.createSale(req.body);
+    const sale = await saleService.createSale({
+      ...req.body,
+      userId: req.user.id,
+    });
+
     res.status(201).json(sale);
   } catch (err) {
     res.status(400).json({ error: 'Erreur création vente' });
   }
 };
 
-// PUT
+// UPDATE
 exports.updateSale = async (req, res) => {
   try {
-    const sale = await saleService.updateSale(req.params.id, req.body);
+    const sale = await saleService.updateSale(
+      req.params.id,
+      req.body,
+      req.user.id
+    );
+
     res.json(sale);
   } catch (err) {
     res.status(400).json({ error: 'Erreur mise à jour' });
@@ -44,7 +58,11 @@ exports.updateSale = async (req, res) => {
 // DELETE
 exports.deleteSale = async (req, res) => {
   try {
-    await saleService.deleteSale(req.params.id);
+    await saleService.deleteSale(
+      req.params.id,
+      req.user.id
+    );
+
     res.json({ message: 'Vente supprimée' });
   } catch (err) {
     res.status(400).json({ error: 'Erreur suppression' });

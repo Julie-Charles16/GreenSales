@@ -1,15 +1,33 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const Navbar: React.FC = () => {
+type NavbarProps = {
+  setToken: React.Dispatch<React.SetStateAction<string | null>>;
+};
+
+const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+
+  setToken(null);
+
+  navigate("/");
+};
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-3">
-      <Link className="navbar-brand fw-bold" to="/">
-        {/* <i className="bi bi-speedometer2 me-2"></i> */}
+      <Link className="navbar-brand fw-bold" to="/dashboard">
         <i className="bi bi-leaf-fill me-2"></i>
         GreenSales
       </Link>
+      <span className="text-white">👤 Bonjour {user?.pseudo}</span>
 
+      {/* Toggle button for mobile view */}
       <button
         className="navbar-toggler"
         type="button"
@@ -21,11 +39,11 @@ const Navbar: React.FC = () => {
 
       <div className="collapse navbar-collapse" id="navbarNav">
         <ul className="navbar-nav ms-auto gap-3">
-          <li className="nav-item">
+          {/* <li className="nav-item">
             <Link className="nav-link" to="/">
               <i className="bi bi-house me-1"></i> Accueil
             </Link>
-          </li>
+          </li> */}
           <li className="nav-item">
             <Link className="nav-link" to="/dashboard">
               <i className="bi bi-speedometer2 me-1"></i> Tableau de bord
@@ -45,6 +63,11 @@ const Navbar: React.FC = () => {
             <Link className="nav-link" to="/appointments">
               <i className="bi bi-calendar-event me-1"></i> Rendez-vous
             </Link>
+          </li>
+          <li className="nav-item">
+            <button onClick={handleLogout} className="nav-link btn btn-link">
+              <i className="bi bi-box-arrow-right me-1"></i> Déconnexion
+            </button>
           </li>
         </ul>
       </div>

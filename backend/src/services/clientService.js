@@ -1,13 +1,13 @@
 const clientRepository = require('../repositories/clientRepository');
 
-//  GET ALL
-const getClients = async () => {
-  return await clientRepository.getAllClients();
+// GET ALL (filtré par user)
+const getClients = async (userId) => {
+  return await clientRepository.getAllClients(userId);
 };
 
-//  GET BY ID
-const getClient = async (id) => {
-  const client = await clientRepository.getClientById(id);
+// GET BY ID (sécurisé user)
+const getClient = async (id, userId) => {
+  const client = await clientRepository.getClientById(id, userId);
 
   if (!client) {
     throw new Error('Client non trouvé');
@@ -16,16 +16,14 @@ const getClient = async (id) => {
   return client;
 };
 
-//  CREATE
+// CREATE
 const createClient = async (data) => {
-  const { email, name, firstName } = data;
+  const { email, name, firstName, userId } = data;
 
-  //  VALIDATIONS
-  if (!email || !name || !firstName) {
-    throw new Error('Champs obligatoires manquants (email, name, firstName)');
+  if (!email || !name || !firstName || !userId) {
+    throw new Error('Champs obligatoires manquants');
   }
 
-  //  Vérifier doublon email
   const existing = await clientRepository.getClientByEmail(email);
 
   if (existing) {
@@ -38,9 +36,14 @@ const createClient = async (data) => {
   });
 };
 
-//  UPDATE
-const updateClient = async (id, data) => {
-  // Vérifier si email modifié
+// UPDATE (sécurisé user)
+const updateClient = async (id, data, userId) => {
+  const client = await clientRepository.getClientById(id, userId);
+
+  if (!client) {
+    throw new Error("Client introuvable");
+  }
+
   if (data.email) {
     const existing = await clientRepository.getClientByEmail(data.email);
 
@@ -49,12 +52,18 @@ const updateClient = async (id, data) => {
     }
   }
 
-  return await clientRepository.updateClient(id, data);
+  return await clientRepository.updateClient(id, data, userId);
 };
 
-//  DELETE
-const deleteClient = async (id) => {
-  return await clientRepository.deleteClient(id);
+// DELETE (sécurisé user)
+const deleteClient = async (id, userId) => {
+  const client = await clientRepository.getClientById(id, userId);
+
+  if (!client) {
+    throw new Error("Client introuvable");
+  }
+
+  return await clientRepository.deleteClient(id, userId);
 };
 
 module.exports = {

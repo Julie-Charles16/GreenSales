@@ -1,34 +1,50 @@
 const prisma = require('../config/db');
 
-const getAllAppointments = () => {
+// GET ALL (par user)
+const getAllAppointments = (userId) => {
   return prisma.appointment.findMany({
+    where: { userId },
     include: { client: true, user: true },
   });
 };
 
-const getAppointmentById = (id) => {
-  return prisma.appointment.findUnique({
-    where: { id },
+// GET BY ID (sécurisé user)
+const getAppointmentById = (id, userId) => {
+  return prisma.appointment.findFirst({
+    where: {
+      id,
+      userId,
+    },
   });
 };
 
+// CREATE
 const createAppointment = (data) => {
   return prisma.appointment.create({ data });
 };
 
-const updateAppointment = (id, data) => {
-  return prisma.appointment.update({
-    where: { id },
+// UPDATE (sécurisé user)
+const updateAppointment = (id, data, userId) => {
+  return prisma.appointment.updateMany({
+    where: {
+      id,
+      userId,
+    },
     data,
   });
 };
 
-const deleteAppointment = (id) => {
-  return prisma.appointment.delete({
-    where: { id },
+// DELETE (sécurisé user)
+const deleteAppointment = (id, userId) => {
+  return prisma.appointment.deleteMany({
+    where: {
+      id,
+      userId,
+    },
   });
 };
 
+// CHECK EXISTING (déjà bon 👍)
 const findExistingAppointment = (clientId, userId, date) => {
   return prisma.appointment.findFirst({
     where: {

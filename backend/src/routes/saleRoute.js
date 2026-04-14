@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const saleController = require('../controllers/saleController');
+const authMiddleware = require('../middleware/authMiddleware');
 
-router.get('/', saleController.getAllSales);
-router.get('/:id', saleController.getSale);
-router.post('/', saleController.createSale);
-router.put('/:id', saleController.updateSale);
-router.delete('/:id', saleController.deleteSale);
+// 🔐 PROTECTION TOTALE
+router.get('/', authMiddleware, saleController.getAllSales);
+router.get('/:id', authMiddleware, saleController.getSale);
+router.post('/', authMiddleware, saleController.createSale);
+router.put('/:id', authMiddleware, saleController.updateSale);
+router.delete('/:id', authMiddleware, saleController.deleteSale);
 
 module.exports = router;
