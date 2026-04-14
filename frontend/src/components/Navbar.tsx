@@ -27,6 +27,11 @@ const Navbar: React.FC = () => {
             </Link>
           </li>
           <li className="nav-item">
+            <Link className="nav-link" to="/dashboard">
+              <i className="bi bi-speedometer2 me-1"></i> Tableau de bord
+            </Link>
+          </li>
+          <li className="nav-item">
             <Link className="nav-link" to="/clients">
               <i className="bi bi-people me-1"></i> Clients
             </Link>

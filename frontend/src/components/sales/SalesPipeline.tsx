@@ -1,6 +1,6 @@
 import React from "react";
-import type { Sale } from "../types/sale";
-import type { Client } from "../types/client";
+import type { Sale } from "../../types/sale";
+import type { Client } from "../../types/client";
 
 type Props = {
   sales: Sale[];

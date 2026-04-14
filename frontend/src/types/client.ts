@@ -9,6 +9,7 @@ export interface Client {
   phone?: string;
   projectType: string;
   status: string;
+  createdAt?: string;
   userId: number;
 }
 
