@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import api from "../api/client";
 
@@ -26,18 +26,41 @@ export default function Login() {
   };
 
   return (
-    <form onSubmit={handleLogin}>
-      <input
-        placeholder="Email"
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        onChange={(e) => setPassword(e.target.value)}
-      />
+    <form
+  onSubmit={handleLogin}
+  className="d-flex justify-content-center align-items-center vh-100 bg-light"
+>
+  <div
+    className="bg-white p-4 rounded-4 shadow-sm border"
+    style={{ maxWidth: "400px", width: "100%" }}
+  >
+    <h2 className="text-center mb-4 fw-bold">Connexion</h2>
 
-      <button type="submit">Login</button>
-    </form>
+    <input
+      type="email"
+      placeholder="Email"
+      className="form-control mb-3"
+      onChange={(e) => setEmail(e.target.value)}
+    />
+
+    <input
+      type="password"
+      placeholder="Mot de passe"
+      className="form-control mb-4"
+      onChange={(e) => setPassword(e.target.value)}
+    />
+
+    <button className="btn btn-dark w-100 rounded-pill py-2">
+      Se connecter
+    </button>
+
+    <p className="text-center text-muted mt-3 mb-0">
+      Pas encore de compte ?{" "}
+      <Link to="/register" className="text-decoration-none">
+        S'inscrire
+      </Link>
+    </p>
+  </div>
+</form>
   );
 }

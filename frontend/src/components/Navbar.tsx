@@ -18,7 +18,7 @@ const Navbar = () => {
         <i className="bi bi-leaf-fill me-2"></i>
         GreenSales
       </Link>
-      <span className="text-white">👤 Bonjour {user?.pseudo}</span>
+      <span className="text-white"><i className="bi bi-person"></i> Bonjour {user?.pseudo}</span>
 
       {/* Toggle button for mobile view */}
       <button
