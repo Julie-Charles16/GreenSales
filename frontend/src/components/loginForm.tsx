@@ -1,37 +1,41 @@
-import { useState } from 'react';
-import api from '../api/client';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/useAuth";
+import api from "../api/client";
 
-interface Props {
-  setToken: React.Dispatch<React.SetStateAction<string | null>>;
-}
-
-export default function Login({ setToken }: Props) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export default function Login() {
+  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const res = await api.post("/auth/login", {
-    email,
-    password,
-  });
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
+    try {
+      const res = await api.post("/auth/login", { email, password });
 
-    setToken(res.data.token); // 🔥 maintenant OK
+      login(res.data.token, res.data.user);
+      navigate("/dashboard");
 
-    navigate("/dashboard");
-};
-
+    } catch (error) {
+      console.error("Erreur login", error);
+      alert("Email ou mot de passe incorrect");
+    }
+  };
 
   return (
     <form onSubmit={handleLogin}>
-      <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
+      <input
+        placeholder="Email"
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        onChange={(e) => setPassword(e.target.value)}
+      />
 
       <button type="submit">Login</button>
     </form>

@@ -17,7 +17,6 @@ const getInitialForm = (
   status: initialData?.status || "PLANIFIE",
   comment: initialData?.comment || "",
   clientId: initialData?.clientId || clients?.[0]?.id || 1,
-  userId: initialData?.userId || 1,
 });
 
 const AppointmentForm: React.FC<Props> = ({

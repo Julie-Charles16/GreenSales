@@ -4,10 +4,12 @@ const appointmentController = require('../controllers/appointmentController');
 const authMiddleware = require('../middleware/authMiddleware');
 
 // 🔐 PROTECTION TOTALE
-router.get('/', authMiddleware, appointmentController.getAllAppointments);
-router.get('/:id', authMiddleware, appointmentController.getAppointmentById);
-router.post('/', authMiddleware, appointmentController.createAppointment);
-router.put('/:id', authMiddleware, appointmentController.updateAppointment);
-router.delete('/:id', authMiddleware, appointmentController.deleteAppointment);
+router.use(authMiddleware);
+
+router.get('/', appointmentController.getAllAppointments);
+router.get('/:id', appointmentController.getAppointmentById);
+router.post('/', appointmentController.createAppointment);
+router.put('/:id', appointmentController.updateAppointment);
+router.delete('/:id', appointmentController.deleteAppointment);
 
 module.exports = router;

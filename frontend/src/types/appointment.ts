@@ -17,5 +17,4 @@ export interface AppointmentFormData {
   status: "PLANIFIE" | "TERMINE" | "ANNULE";
   comment?: string;
   clientId: number;
-  userId: number;
 }

@@ -73,17 +73,23 @@ const SalesPage: React.FC = () => {
 
   // Chargement initial (sales + clients)
   useEffect(() => {
-    const fetchData = async () => {
+  const fetchData = async () => {
+    try {
       const [salesData, clientsData] = await Promise.all([
         getSales(),
         getClients(),
       ]);
+
       setSales(salesData);
       setClients(clientsData);
-    };
 
-    void fetchData();
-  }, []);
+    } catch (error) {
+      console.error("Erreur chargement sales :", error);
+    }
+  };
+
+  void fetchData();
+}, []);
 
   // Toast auto-disparition
   useEffect(() => {

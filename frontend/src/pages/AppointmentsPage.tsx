@@ -57,7 +57,8 @@ const AppointmentsPage: React.FC = () => {
 
   // 🔹 load data
   useEffect(() => {
-    const fetchData = async () => {
+  const fetchData = async () => {
+    try {
       const [appointmentsData, clientsData] = await Promise.all([
         getAppointments(),
         getClients(),
@@ -65,10 +66,14 @@ const AppointmentsPage: React.FC = () => {
 
       setAppointments(appointmentsData);
       setClients(clientsData);
-    };
 
-    void fetchData();
-  }, []);
+    } catch (error) {
+      console.error("Erreur chargement appointments :", error);
+    }
+  };
+
+  fetchData();
+}, []);
 
   const loadAppointments = async () => {
     const data = await getAppointments();

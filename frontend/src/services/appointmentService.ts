@@ -1,7 +1,7 @@
 import api from "../api/client";
 import type { Appointment, AppointmentFormData } from "../types/appointment";
 
-const API_URL = "http://localhost:3000/appointments";
+const API_URL = "/appointments";
 
 export const getAppointments = async (): Promise<Appointment[]> => {
   const res = await api.get(API_URL);

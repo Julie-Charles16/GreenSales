@@ -4,10 +4,12 @@ const saleController = require('../controllers/saleController');
 const authMiddleware = require('../middleware/authMiddleware');
 
 // 🔐 PROTECTION TOTALE
-router.get('/', authMiddleware, saleController.getAllSales);
-router.get('/:id', authMiddleware, saleController.getSale);
-router.post('/', authMiddleware, saleController.createSale);
-router.put('/:id', authMiddleware, saleController.updateSale);
-router.delete('/:id', authMiddleware, saleController.deleteSale);
+router.use(authMiddleware);
+
+router.get('/', saleController.getAllSales);
+router.get('/:id', saleController.getSale);
+router.post('/', saleController.createSale);
+router.put('/:id', saleController.updateSale);
+router.delete('/:id', saleController.deleteSale);
 
 module.exports = router;

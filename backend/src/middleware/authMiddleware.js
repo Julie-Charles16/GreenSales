@@ -4,6 +4,7 @@ function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
+    console.log("AUTH HEADER:", authHeader);
     return res.status(401).json({ message: 'Token manquant' });
   }
 

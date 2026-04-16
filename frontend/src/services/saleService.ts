@@ -1,7 +1,7 @@
 import api from "../api/client";
 import type { Sale, SaleFormData } from "../types/sale";
 
-const API_URL = "http://localhost:3000/sales";
+const API_URL = "/sales";
 
 export const getSales = async (): Promise<Sale[]> => {
   const res = await api.get(API_URL);

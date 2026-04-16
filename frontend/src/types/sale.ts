@@ -14,5 +14,4 @@ export interface SaleFormData {
   amount: number;
   status: SaleStatus;
   clientId: number;
-  userId: number;
 }

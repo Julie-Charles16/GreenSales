@@ -1,23 +1,16 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/useAuth";
 
-type NavbarProps = {
-  setToken: React.Dispatch<React.SetStateAction<string | null>>;
-};
-
-const Navbar: React.FC<NavbarProps> = ({ setToken }) => {
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+const Navbar = () => {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
+    logout();
+    navigate("/", { replace: true }); // 🔥 important
+ };
 
-  setToken(null);
-
-  navigate("/");
-};
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-3">

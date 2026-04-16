@@ -4,10 +4,12 @@ const clientController = require('../controllers/clientController');
 const authMiddleware = require('../middleware/authMiddleware');
 
 // 🔐 PROTECTION TOTALE
-router.get('/', authMiddleware, clientController.getAllClients);
-router.get('/:id', authMiddleware, clientController.getClientById);
-router.post('/', authMiddleware, clientController.createClient);
-router.put('/:id', authMiddleware, clientController.updateClient);
-router.delete('/:id', authMiddleware, clientController.deleteClient);
+router.use(authMiddleware);
+
+router.get('/', clientController.getAllClients);
+router.get('/:id', clientController.getClientById);
+router.post('/', clientController.createClient);
+router.put('/:id', clientController.updateClient);
+router.delete('/:id', clientController.deleteClient);
 
 module.exports = router;

@@ -1,5 +1,4 @@
 import React from "react";
-import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import HomePage from "./pages/HomePage";
@@ -12,54 +11,38 @@ import ClientsPage from "./pages/ClientsPage";
 import AppointmentsPage from "./pages/AppointmentsPage";
 import SalesPage from "./pages/SalesPage";
 
+import { useAuth } from "./context/useAuth";
+
 const App: React.FC = () => {
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("token")
-  );
+  const { token } = useAuth();
 
   return (
     <BrowserRouter>
-      {token && <Navbar setToken={setToken} />}
+      {token && <Navbar />}
 
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage setToken={setToken} />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
         <Route
           path="/dashboard"
-          element={
-            <PrivateRoute token={token}>
-              <DashboardPage />
-            </PrivateRoute>
-          }
+          element={<PrivateRoute><DashboardPage /></PrivateRoute>}
         />
 
         <Route
           path="/clients"
-          element={
-            <PrivateRoute token={token}>
-              <ClientsPage />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/appointments"
-          element={
-            <PrivateRoute token={token}>
-              <AppointmentsPage />
-            </PrivateRoute>
-          }
+          element={<PrivateRoute><ClientsPage /></PrivateRoute>}
         />
 
         <Route
           path="/sales"
-          element={
-            <PrivateRoute token={token}>
-              <SalesPage />
-            </PrivateRoute>
-          }
+          element={<PrivateRoute><SalesPage /></PrivateRoute>}
+        />
+
+        <Route
+          path="/appointments"
+          element={<PrivateRoute><AppointmentsPage /></PrivateRoute>}
         />
       </Routes>
     </BrowserRouter>

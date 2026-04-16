@@ -16,7 +16,6 @@ const getInitialForm = (
   amount: initialData?.amount ?? 0,
   status: (initialData?.status as SaleStatus) ?? "EN_ATTENTE",
   clientId: initialData?.clientId ?? clients?.[0]?.id ?? 0,
-  userId: initialData?.userId ?? 1,
 });
 
 const SaleForm: React.FC<Props> = ({
