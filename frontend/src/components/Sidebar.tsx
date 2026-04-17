@@ -62,6 +62,13 @@ const Sidebar = () => {
           </NavLink>
         </li>
 
+        <li>
+          <NavLink to="/settings" className={linkClass}>
+            <i className="bi bi-gear"></i>
+            Paramètres
+          </NavLink>
+        </li>
+
       </ul>
 
       {/* Déconnexion en bas */}

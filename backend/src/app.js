@@ -8,11 +8,13 @@ app.use(express.json());
 app.use(cors());
 // Routes
 const authRoutes = require('./routes/authRoute');
+const userRoutes = require('./routes/userRoute');
 const clientRoutes = require('./routes/clientRoute');
 const appointmentRoutes = require('./routes/appointmentRoute');
 const saleRoutes = require('./routes/saleRoute');
 
 app.use('/auth', authRoutes);
+app.use('/api/user', userRoutes);
 app.use('/clients', clientRoutes);
 app.use('/appointments', appointmentRoutes);
 app.use('/sales', saleRoutes);

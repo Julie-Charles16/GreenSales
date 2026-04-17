@@ -7,6 +7,9 @@ export default function Register() {
   const [pseudo, setPseudo] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,12 +49,22 @@ export default function Register() {
       onChange={(e) => setEmail(e.target.value)}
     />
 
-    <input
-      type="password"
-      placeholder="Mot de passe"
-      className="form-control mb-4"
-      onChange={(e) => setPassword(e.target.value)}
-    />
+    <div className="input-group mb-4">
+      <input
+        type={showPassword ? "text" : "password"}
+        placeholder="Mot de passe"
+        className="form-control"
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      
+      <button
+        type="button"
+        className="btn btn-outline-secondary"
+        onClick={() => setShowPassword(!showPassword)}
+      >
+        <i className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}></i>
+      </button>
+    </div>
 
     <button type="submit" className="btn btn-dark w-100 rounded-pill py-2">
       S'inscrire

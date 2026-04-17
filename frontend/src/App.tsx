@@ -7,8 +7,9 @@ import RegisterPage from "./pages/RegisterForm";
 import PrivateRoute from "./components/PrivateRoute";
 import DashboardPage from "./pages/DashboardPage";
 import ClientsPage from "./pages/ClientsPage";
-import AppointmentsPage from "./pages/AppointmentsPage";
 import SalesPage from "./pages/SalesPage";
+import AppointmentsPage from "./pages/AppointmentsPage";
+import SettingsPage from "./pages/SettingsPage";
 
 import Layout from "./components/Layout";
 
@@ -27,6 +28,8 @@ const App: React.FC = () => {
           <Route path="/clients" element={<ClientsPage />} />
           <Route path="/sales" element={<SalesPage />} />
           <Route path="/appointments" element={<AppointmentsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          
         </Route>
 
         {/* Routes publiques */}

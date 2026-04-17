@@ -8,6 +8,8 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -60,12 +62,22 @@ export default function Login() {
       onChange={(e) => setEmail(e.target.value)}
     />
 
-    <input
-      type="password"
-      placeholder="Mot de passe"
-      className="form-control mb-4"
-      onChange={(e) => setPassword(e.target.value)}
-    />
+    <div className="input-group mb-4">
+      <input
+        type={showPassword ? "text" : "password"}
+        placeholder="Mot de passe"
+        className="form-control"
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      
+      <button
+        type="button"
+        className="btn btn-outline-secondary"
+        onClick={() => setShowPassword(!showPassword)}
+      >
+        <i className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}></i>
+      </button>
+    </div>
 
     {error && <p className="text-danger">{error}</p>}
 
