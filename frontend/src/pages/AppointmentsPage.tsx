@@ -11,6 +11,7 @@ import { getClients } from "../services/clientService";
 
 import type { Appointment, AppointmentFormData } from "../types/appointment";
 import type { Client } from "../types/client";
+import { useToast } from "../context/toast/useToast";
 
 import AppointmentCalendar from "../components/appointment/AppointmentCalendar";
 import AppointmentsTable from "../components/appointment/AppointmentsTable";
@@ -20,8 +21,6 @@ import AppointmentsHeader from "../components/appointment/AppointmentsHeader";
 import AppointmentsKPI from "../components/appointment/AppointmentsKPI";
 import AppointmentsFilters from "../components/appointment/AppointmentsFilters";
 import AppointmentDeleteModal from "../components/appointment/modals/AppointmentDeleteModal";
-import ToastMessage from "../components/ToastMessage";
-
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
@@ -32,22 +31,21 @@ const AppointmentsPage: React.FC = () => {
   const [editing, setEditing] = useState<Appointment | null>(null);
   const [toDelete, setToDelete] = useState<Appointment | null>(null);
 
-  const [toastMsg, setToastMsg] = useState("");
-
+  const { showToast } = useToast();
   const [viewMode, setViewMode] = useState<"calendar" | "list" | "cards">("calendar");
 
-  // ✅ FILTRES (placés AVANT utilisation)
+  // FILTRES (placés AVANT utilisation)
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
 
-  // 🔹 refs modales
+  // refs modales
   const formModalRef = useRef<HTMLDivElement>(null);
   const deleteModalRef = useRef<HTMLDivElement>(null);
 
   const [formModal, setFormModal] = useState<Modal | null>(null);
   const [deleteModal, setDeleteModal] = useState<Modal | null>(null);
 
-  // 🔹 init modales
+  // init modales
   useEffect(() => {
     if (formModalRef.current)
       setFormModal(new Modal(formModalRef.current, { backdrop: "static" }));
@@ -55,7 +53,7 @@ const AppointmentsPage: React.FC = () => {
       setDeleteModal(new Modal(deleteModalRef.current));
   }, []);
 
-  // 🔹 load data
+  // load data
   useEffect(() => {
   const fetchData = async () => {
     try {
@@ -80,7 +78,7 @@ const AppointmentsPage: React.FC = () => {
     setAppointments(data);
   };
 
-  // 🔹 helpers
+  // helpers
   const getClientName = (clientId: number) => {
     const client = clients.find((c) => c.id === clientId);
     return client ? `${client.name} ${client.firstName}` : "Client inconnu";
@@ -119,10 +117,10 @@ const AppointmentsPage: React.FC = () => {
     }
   };
 
-  // ✅ STATUSES dynamiques
+  // STATUSES
   const statuses = Array.from(new Set(appointments.map((a) => a.status)));
 
-  // ✅ FILTRE CORRIGÉ
+  // FILTRE
   const filteredAppointments = appointments
     .filter((appt) => {
       const client = clients.find((c) => c.id === appt.clientId);
@@ -140,7 +138,7 @@ const AppointmentsPage: React.FC = () => {
     })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  // 🔹 actions calendrier
+  // actions calendrier
   const handleEventClick = (appt: Appointment) => {
     setEditing(appt);
     formModal?.show();
@@ -166,10 +164,16 @@ const AppointmentsPage: React.FC = () => {
   const handleSubmit = async (data: AppointmentFormData) => {
     if (editing && editing.id !== 0) {
       await updateAppointment(editing.id, data);
-      setToastMsg("RDV modifié !");
+      showToast({
+        message: "RDV modifié !",
+        variant: "info",
+      });  
     } else {
       await createAppointment(data);
-      setToastMsg("RDV ajouté !");
+      showToast({
+        message: "RDV ajouté !",
+        variant: "success",
+      }); 
     }
 
     await loadAppointments();
@@ -188,19 +192,15 @@ const AppointmentsPage: React.FC = () => {
     if (!toDelete) return;
 
     await deleteAppointment(toDelete.id);
-    setToastMsg("RDV supprimé !");
-    setToDelete(null);
-    deleteModal?.hide();
+      showToast({
+        message: "RDV supprimé !",
+        variant: "danger",
+      });  
+      setToDelete(null);
+      deleteModal?.hide();
     await loadAppointments();
   };
-
-  // 🔹 toast auto
-  useEffect(() => {
-    if (!toastMsg) return;
-    const timer = setTimeout(() => setToastMsg(""), 3000);
-    return () => clearTimeout(timer);
-  }, [toastMsg]);
-
+  
   return (
     <div className="container mt-4">
       <AppointmentsHeader
@@ -319,14 +319,7 @@ const AppointmentsPage: React.FC = () => {
         onClose={() => deleteModal?.hide()}
         onConfirm={confirmDelete}
         getClientName={getClientName}
-      />
-
-      {/* TOAST */}
-      <ToastMessage
-        message={toastMsg}
-        onClose={() => setToastMsg("")}
-        variant="success"
-      />
+      />      
     </div>
   );
 };

@@ -11,6 +11,8 @@ import { getClients } from "../services/clientService";
 import type { Sale, SaleFormData } from "../types/sale";
 import type { Client } from "../types/client";
 
+import { useToast } from "../context/toast/useToast";
+
 import SalesHeader from "../components/sales/SalesHeader";
 import SalesFilters from "../components/sales/SalesFilters";
 import SalesKPI from "../components/sales/SalesKPI";
@@ -18,7 +20,7 @@ import SalesPipeline from "../components/sales/SalesPipeline";
 import SalesTable from "../components/sales/SalesTable";
 import SaleForm from "../components/sales/modals/SaleFormModal";
 import SaleDeleteModal from "../components/sales/modals/SaleDeleteModal";
-import ToastMessage from "../components/ToastMessage";
+
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
@@ -43,8 +45,7 @@ const SalesPage: React.FC = () => {
   // ==============================
   const [editingSale, setEditingSale] = useState<Sale | null>(null);
   const [saleToDelete, setSaleToDelete] = useState<Sale | null>(null);
-  const [toastMsg, setToastMsg] = useState("");
-
+  const { showToast } = useToast();
   // ==============================
   // 🔹 REFS - modales Bootstrap
   // ==============================
@@ -90,13 +91,6 @@ const SalesPage: React.FC = () => {
 
   void fetchData();
 }, []);
-
-  // Toast auto-disparition
-  useEffect(() => {
-    if (!toastMsg) return;
-    const timer = setTimeout(() => setToastMsg(""), 3000);
-    return () => clearTimeout(timer);
-  }, [toastMsg]);
 
   // ==============================
   // 🔹 API - chargement
@@ -187,10 +181,16 @@ const SalesPage: React.FC = () => {
   const handleSubmit = async (data: SaleFormData) => {
     if (editingSale) {
       await updateSale(editingSale.id, data);
-      setToastMsg("Vente modifiée !");
+      showToast({
+        message: "Vente modifiée !",
+        variant: "info",
+      }); 
     } else {
       await createSale(data);
-      setToastMsg("Vente ajoutée !");
+      showToast({
+        message: "Vente ajoutée !",
+        variant: "success",
+      });
     }
 
     await loadSales();
@@ -210,7 +210,10 @@ const SalesPage: React.FC = () => {
     if (!saleToDelete) return;
 
     await deleteSale(saleToDelete.id);
-    setToastMsg("Vente supprimée !");
+    showToast({
+      message: "Vente supprimée !",
+      variant: "danger",
+    });    
     setSaleToDelete(null);
     deleteModal?.hide();
 
@@ -294,13 +297,6 @@ const SalesPage: React.FC = () => {
         onClose={() => deleteModal?.hide()}
         onConfirm={confirmDelete}
        />
-
-      {/* TOAST */}
-      <ToastMessage
-        message={toastMsg}
-        onClose={() => setToastMsg("")}
-        variant="success"
-      />
     </div>
   );
 };

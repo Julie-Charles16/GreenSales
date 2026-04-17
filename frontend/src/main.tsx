@@ -5,13 +5,16 @@ import App from './App.tsx'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import { AuthProvider } from './context/AuthProvider';
+import { AuthProvider } from './context/auth/AuthProvider';
+import { ToastProvider } from './context/toast/ToastProvider.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <AuthProvider>
-    <StrictMode>
-      <App />
-    </StrictMode>
+    <ToastProvider>
+      <StrictMode>
+        <App />
+      </StrictMode>
+    </ToastProvider>
   </AuthProvider>,
 )
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { AuthContext } from "./AuthContext";
-import type { User } from "../types/user";
+import type { User } from "../../types/user";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(

@@ -11,10 +11,10 @@ import ClientsCards from "../components/clients/ClientsCards";
 import ClientForm from "../components/clients/modals/ClientFormModal";
 import ClientDetailModal from "../components/clients/modals/ClientDetailModal";
 import ClientDeleteModal from "../components/clients/modals/ClientDeleteModal";
-import ToastMessage from "../components/ToastMessage";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import { useToast } from "../context/toast/useToast";
 
 const ClientsPage: React.FC = () => {
 
@@ -37,8 +37,7 @@ const ClientsPage: React.FC = () => {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [detailClient, setDetailClient] = useState<Client | null>(null);
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
-  const [toastMsg, setToastMsg] = useState("");
-
+  const { showToast } = useToast();
   // ==============================
   // 🔹 REFS - modales Bootstrap
   // ==============================
@@ -82,13 +81,6 @@ const ClientsPage: React.FC = () => {
     };
     void fetchClients();
   }, []);
-
-  // Toast auto-disparition
-  useEffect(() => {
-    if (!toastMsg) return;
-    const timer = setTimeout(() => setToastMsg(""), 3000);
-    return () => clearTimeout(timer);
-  }, [toastMsg]);
 
   // ==============================
   // 🔹 DATA - calculées
@@ -157,12 +149,17 @@ const ClientsPage: React.FC = () => {
   const handleSubmit = async (data: ClientFormData) => {
     if (editingClient) {
       await updateClient(editingClient.id, data);
-      setToastMsg("Client modifié !");
-    } else {
+      showToast({
+        message: "Client modifié !",
+        variant: "info",
+      });  
+      } else {
       await createClient(data);
-      setToastMsg("Client ajouté !");
+      showToast({
+        message: "Client ajouté !",
+        variant: "success",
+      });    
     }
-
     await loadClients();
     formModal?.hide();
   };
@@ -191,7 +188,10 @@ const ClientsPage: React.FC = () => {
     if (!clientToDelete) return;
 
     await deleteClient(clientToDelete.id);
-    setToastMsg("Client supprimé !");
+    showToast({
+      message: "Client supprimé !",
+      variant: "danger",
+    });    
     setClientToDelete(null);
     deleteModal?.hide();
 
@@ -282,11 +282,7 @@ const ClientsPage: React.FC = () => {
       />
 
       {/* TOAST */}
-      <ToastMessage
-        message={toastMsg}
-        onClose={() => setToastMsg("")}
-        variant="success"
-      />
+      
     </div>
   );
 };
