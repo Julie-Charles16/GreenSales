@@ -1,17 +1,3 @@
-/* NavBar */
-.navbar {
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.nav-link {
-  transition: color 0.2s ease;
-}
-
-.nav-link:hover {
-  color: #0d6efd;
-}
-
-
 /* enlever les flèches input number */
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
