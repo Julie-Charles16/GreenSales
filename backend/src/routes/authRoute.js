@@ -50,13 +50,13 @@ router.post('/login', async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: 'Utilisateur introuvable' });
+      return res.status(401).json({message: "Identifiants invalides"});
     }
 
     const isValid = await comparePassword(password, user.password);
 
     if (!isValid) {
-      return res.status(401).json({ message: 'Mot de passe incorrect' });
+      return res.status(401).json({message: "Identifiants invalides"});
     }
 
     const token = generateToken(user);

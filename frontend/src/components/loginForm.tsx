@@ -2,28 +2,45 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import api from "../api/client";
+import axios from "axios";
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const res = await api.post("/auth/login", { email, password });
+  setLoading(true);
+  setError("");
 
-      login(res.data.token, res.data.user);
-      navigate("/dashboard");
+  try {
+    const res = await api.post("/auth/login", {
+      email,
+      password,
+    });
 
-    } catch (error) {
-      console.error("Erreur login", error);
-      alert("Email ou mot de passe incorrect");
-    }
-  };
+    login(res.data.token, res.data.user);
+
+    navigate("/dashboard");
+
+  } catch (error: unknown) {
+  if (axios.isAxiosError(error)) {
+    setError(error.response?.data?.message || "Erreur serveur");
+  } else {
+    setError("Erreur inconnue");
+  }
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <form
@@ -50,8 +67,17 @@ export default function Login() {
       onChange={(e) => setPassword(e.target.value)}
     />
 
-    <button className="btn btn-dark w-100 rounded-pill py-2">
-      Se connecter
+    {error && <p className="text-danger">{error}</p>}
+
+    <button disabled={loading} className="btn btn-dark w-100 rounded-pill py-2">
+      {loading ? (
+        <>
+          <span className="spinner-border spinner-border-sm me-2"></span>
+          Connexion...
+        </>
+      ) : (
+        "Se connecter"
+      )}
     </button>
 
     <p className="text-center text-muted mt-3 mb-0">
