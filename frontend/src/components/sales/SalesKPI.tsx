@@ -1,27 +1,90 @@
-import React from "react";
+import React, { useMemo } from "react";
 import type { Sale } from "../../types/sale";
 
 interface Props {
   sales: Sale[];
-  totalCommission: number;
 }
 
-const SalesKPI: React.FC<Props> = ({ totalCommission }) => {
-    return (
+const SalesKPI: React.FC<Props> = ({ sales }) => {
+  // ======================
+  // KPI CALCULS
+  // ======================
+
+  const totalSales = sales.length;
+
+  const completedSales = useMemo(() => {
+    return sales.filter((s) => s.status === "TERMINEE").length;
+  }, [sales]);
+
+  const totalRevenue = useMemo(() => {
+    return sales
+      .filter((s) => s.status === "TERMINEE")
+      .reduce((acc, s) => acc + s.amount, 0);
+  }, [sales]);
+
+  const totalCommission = useMemo(() => {
+    return sales
+      .filter((s) => s.status === "TERMINEE")
+      .reduce((acc, s) => acc + s.commission, 0);
+  }, [sales]);
+
+  const conversionRate = totalSales
+    ? Math.round((completedSales / totalSales) * 100)
+    : 0;
+
+  return (
     <div className="row mb-4">
-        <div className="alert alert-success d-flex justify-content-between align-items-center">
-        <span>💸 Commission totale</span>
-        <strong>{totalCommission} €</strong>
-      </div>
-      {/* <div className="alert alert-success shadow-sm rounded-4 d-flex justify-content-between">
-        <div>
-          <div className="small text-muted">Commission totale</div>
-          <div className="fs-5 fw-bold">{totalCommission} €</div>
+
+      {/* CA */}
+      <div className="col-md-3">
+        <div className="card p-3 shadow-sm h-100">
+          <div className="text-muted small mb-1">
+            <i className="bi bi-currency-euro me-1"></i> Chiffre d'affaires
+          </div>
+          <h4 className="mb-0">
+            {totalRevenue.toLocaleString("fr-FR")} €
+          </h4>
         </div>
-        <div className="fs-3">💸</div>
-      </div> */}
+      </div>
+
+      {/* TOTAL VENTES */}
+      <div className="col-md-3">
+        <div className="card p-3 shadow-sm h-100">
+          <div className="text-muted small mb-1">
+            <i className="bi bi-receipt me-1"></i> Total ventes
+          </div>
+          <h4 className="mb-0">{totalSales}</h4>
+        </div>
+      </div>
+
+      {/* VENTES TERMINÉES */}
+      <div className="col-md-3">
+        <div className="card p-3 shadow-sm h-100">
+          <div className="text-muted small mb-1">
+            <i className="bi bi-check-circle me-1 text-success"></i> Terminées
+          </div>
+          <h4 className="mb-0">{completedSales}</h4>
+        </div>
+      </div>
+
+      {/* COMMISSION */}
+      <div className="col-md-3">
+        <div className="card p-3 shadow-sm h-100 bg-light">
+          <div className="text-muted small mb-1">
+            <i className="bi bi-cash-coin me-1 text-success"></i> Commission
+          </div>
+          <h4 className="mb-0 text-success">
+            {totalCommission.toLocaleString("fr-FR")} €
+          </h4>
+
+          <small className="text-muted">
+            Conversion : {conversionRate} %
+          </small>
+        </div>
+      </div>
+
     </div>
-    );
+  );
 };
 
 export default SalesKPI;

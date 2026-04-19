@@ -5,6 +5,7 @@ interface Props {
   appointments: Appointment[];
   clients: Client[];
   getClientName: (clientId: number) => string;
+  getClientAddress: (clientId: number) => string,
   getClientProjectType: (clientId: number) => string;
   getStatusColor: (status: string) => string;
   getStatusBorderColor: (status: string) => string;
@@ -16,6 +17,7 @@ interface Props {
 const AppointmentsCards: React.FC<Props> = ({
   appointments,
   getClientName,
+  getClientAddress,
   getClientProjectType,
   getStatusColor,
   getStatusBorderColor,
@@ -31,9 +33,7 @@ const AppointmentsCards: React.FC<Props> = ({
             className="card shadow-sm h-100"
             style={{
               borderLeft: `4px solid ${getStatusBorderColor(appt.status)}`,
-              cursor: "pointer",
             }}
-            onClick={() => onEdit(appt)}
           >
             <div className="card-body d-flex flex-column">
               
@@ -49,12 +49,17 @@ const AppointmentsCards: React.FC<Props> = ({
 
               {/* DATE */}
               <p className="text-muted mb-2">
-                📅 {formatDate(appt.date)}
+                <i className="bi bi-calendar-event me-2"></i>
+                  {formatDate(appt.date)}
+              </p>
+              <p className="text-muted mb-2">
+                <i className="bi bi-geo-alt me-2"></i>
+                  {getClientAddress(appt.clientId)}
               </p>
 
               {/* COMMENT */}
               <p className="flex-grow-1">
-                {appt.comment || "Pas de commentaire"}
+                {appt.comment || " "}
               </p>
 
               {/* FOOTER */}
@@ -74,7 +79,7 @@ const AppointmentsCards: React.FC<Props> = ({
                       onEdit(appt);
                     }}
                   >
-                    ✏️
+                  <i className="bi bi-pencil"></i>
                   </button>
 
                   <button
@@ -84,7 +89,7 @@ const AppointmentsCards: React.FC<Props> = ({
                       onDelete(appt);
                     }}
                   >
-                    🗑️
+                  <i className="bi bi-trash"></i>
                   </button>
                 </div>
 

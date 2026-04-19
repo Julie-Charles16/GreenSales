@@ -32,7 +32,7 @@ const totalRevenue = sales.reduce(
 
       <div className="col-md-3">
         <div className="card p-3 shadow-sm">
-          <h6>Clients</h6>
+          <h6><i className="bi bi-people me-2"></i>Clients</h6>
           <h4>{totalClients}</h4>
         </div>
       </div>
@@ -53,7 +53,7 @@ const totalRevenue = sales.reduce(
 
       <div className="col-md-3">
         <div className="card p-3 shadow-sm">
-          <h6>Conversion</h6>
+          <h6><i className="bi bi-graph-up-arrow me-2"></i>Conversion</h6>
           <h4>{conversionRate} %</h4>
         </div>
       </div>

@@ -44,7 +44,7 @@ const ClientDetailModal: React.FC<Props> = ({
                 <div className="border-top pt-3">
                   <small className="text-muted">Contact</small>
                   <div>
-                    <i className="bi bi-envelope me-2"></i>
+                    <i className="bi bi-envelope-at me-2"></i>
                     {client.email}
                   </div>
                   <div>
@@ -84,15 +84,6 @@ const ClientDetailModal: React.FC<Props> = ({
               </div>
             )}
           </div>
-
-          {/* FOOTER */}
-          <div className="modal-footer border-0 pt-0">
-            <button className="btn btn-outline-secondary" onClick={onClose}>
-              <i className="bi bi-x-circle me-1"></i>
-              Fermer
-            </button>
-          </div>
-
         </div>
       </div>
     </div>

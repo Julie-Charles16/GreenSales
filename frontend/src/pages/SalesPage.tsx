@@ -64,12 +64,34 @@ const SalesPage: React.FC = () => {
 
   // Init Bootstrap modals
   useEffect(() => {
-    if (formModalRef.current) {
-      setFormModal(new Modal(formModalRef.current, { backdrop: "static" }));
-    }
-    if (deleteModalRef.current) {
-      setDeleteModal(new Modal(deleteModalRef.current));
-    }
+  if (formModalRef.current) {
+    const modal = new Modal(formModalRef.current, {
+      backdrop: true, 
+      keyboard: true,
+    });
+
+    setFormModal(modal);
+  }
+
+  if (deleteModalRef.current) {
+    setDeleteModal(new Modal(deleteModalRef.current));
+  }
+}, []);
+
+// reset quand
+  useEffect(() => {
+    const el = formModalRef.current;
+    if (!el) return;
+
+    const handleHidden = () => {
+      setEditingSale(null); // reset form propre
+    };
+
+    el.addEventListener("hidden.bs.modal", handleHidden);
+
+    return () => {
+      el.removeEventListener("hidden.bs.modal", handleHidden);
+    };
   }, []);
 
   // Chargement initial (sales + clients)
@@ -129,11 +151,6 @@ const SalesPage: React.FC = () => {
       (filterStatus ? s.status === filterStatus : true)
   );
 
-  // KPI
-  const totalCommission = filteredSales.reduce(
-    (acc, s) => acc + s.commission,
-    0
-  );
 
   // Options filtres
   const statuses = Array.from(new Set(sales.map((s) => s.status)));
@@ -239,7 +256,7 @@ const SalesPage: React.FC = () => {
       />
 
       {/* KPI COMMISSION */}
-      <SalesKPI sales={filteredSales} totalCommission={totalCommission} />
+      <SalesKPI sales={filteredSales} />
 
 
       {/* Pipeline */}
@@ -267,27 +284,18 @@ const SalesPage: React.FC = () => {
       )}
 
       {/* MODAL FORM ADD/EDIT */}
-      <div className="modal fade" ref={formModalRef} tabIndex={-1}>
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5>{editingSale ? "Modifier" : "Ajouter"} une vente</h5>
-              <button
-                className="btn-close"
-                onClick={() => formModal?.hide()}
-              ></button>
-            </div>
-            <div className="modal-body">
-              <SaleForm
-                initialData={editingSale}
-                onSubmit={handleSubmit}
-                onCancel={() => formModal?.hide()}
-                clients={clients}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+<div className="modal fade" ref={formModalRef} tabIndex={-1}>
+  <div className="modal-dialog modal-dialog-centered">
+    <div className="modal-content">
+        <SaleForm
+          initialData={editingSale}
+          onSubmit={handleSubmit}
+          onCancel={() => formModal?.hide()}
+          clients={clients}
+        />
+    </div>
+  </div>
+</div>
 
       {/* MODAL DELETE */}
       <SaleDeleteModal

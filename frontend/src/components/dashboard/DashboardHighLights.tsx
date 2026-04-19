@@ -15,14 +15,13 @@ const DashboardHighlights: React.FC<Props> = ({
   appointments,
 }) => {
   const today = useMemo(() => {
-    return new Date().toISOString().split("T")[0];
+    return new Date().toLocaleDateString("sv-SE");
   }, []);
-  // RDV du jour
+
   const todayAppointments = useMemo(() => {
     return appointments.filter((a) => a.date.startsWith(today));
   }, [appointments, today]);
 
-  // Dernier client
   const lastClient = useMemo(() => {
     return [...clients].sort(
       (a, b) =>
@@ -31,7 +30,6 @@ const DashboardHighlights: React.FC<Props> = ({
     )[0];
   }, [clients]);
 
-  // Dernière vente
   const lastSale = useMemo(() => {
     return [...sales].sort(
       (a, b) =>
@@ -40,100 +38,174 @@ const DashboardHighlights: React.FC<Props> = ({
     )[0];
   }, [sales]);
 
+  // =========================
+  // CLIENT STATUS
+  // =========================
+  const getClientStatusColor = (status: string) => {
+    switch (status) {
+      case "PROSPECT":
+        return "secondary";
+      case "NEGOCIATION":
+        return "warning";
+      case "DEVIS_ENVOYE":
+        return "info";
+      case "SIGNE":
+        return "success";
+      case "PERDU":
+        return "danger";
+      default:
+        return "secondary";
+    }
+  };
+
+  const getClientStatusBadge = (status?: string) => {
+    if (!status) return null;
+
+    return (
+      <span className={`badge bg-${getClientStatusColor(status)}`}>
+        {status}
+      </span>
+    );
+  };
+
+  // =========================
+  // SALE STATUS
+  // =========================
+  const getSaleStatusColor = (status: string) => {
+    switch (status) {
+      case "EN_ATTENTE":
+        return "secondary";
+      case "ANNULEE":
+        return "danger";
+      case "TERMINEE":
+        return "success";
+      default:
+        return "secondary";
+    }
+  };
+
+  const getSaleStatusBadge = (status?: string) => {
+    if (!status) return null;
+
+    return (
+      <span className={`badge bg-${getSaleStatusColor(status)}`}>
+        {status}
+      </span>
+    );
+  };
+
   return (
     <div className="row mb-4">
 
-      {/* RDV du jour */}
+      {/* ================= RDV DU JOUR ================= */}
       <div className="col-md-4">
         <div className="card p-3 shadow-sm h-100">
-          <h6>📅 RDV du jour</h6>
+
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h6 className="mb-0 d-flex align-items-center">
+              <i className="bi bi-calendar-event me-2 fs-5 text-primary" />
+              RDV du jour
+            </h6>
+
+            <span className="badge bg-primary">
+              {todayAppointments.length}
+            </span>
+          </div>
 
           {todayAppointments.length > 0 ? (
             <>
-            <h4>{todayAppointments.length}</h4>
+              <div className="fw-semibold">
+                {todayAppointments[0].client
+                  ? `${todayAppointments[0].client.firstName} ${todayAppointments[0].client.name}`
+                  : `Client #${todayAppointments[0].clientId}`}
+              </div>
 
-              <small>
-                Prochain RDV :{" "}
-                <strong>
-                  {todayAppointments[0].client
-                    ? `${todayAppointments[0].client.firstName} ${todayAppointments[0].client.name}`
-                    : `Client #${todayAppointments[0].clientId}`}
-                </strong>{" "}
+              <small className="text-muted d-block mb-2">
                 à{" "}
-                {todayAppointments[0].date.split("T")[1].slice(0, 5)}
+                {new Date(todayAppointments[0].date).toLocaleTimeString("fr-FR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  timeZone: "Europe/Paris",
+                })}
               </small>
 
-              <p className="mb-3">
-              <i className="bi bi-geo-alt me-2"></i>
-              {lastClient.address || "Adresse inconnue"}
-              {lastClient.city ? `, ${lastClient.city}` : ""}
-            </p>
+              <small className="text-muted">
+                <i className="bi bi-geo-alt me-1"></i>
+                {lastClient?.address || "Adresse inconnue"}
+                {lastClient?.city ? `, ${lastClient.city}` : ""}
+              </small>
             </>
           ) : (
-            <p className="text-muted">Aucun RDV aujourd’hui</p>
+            <p className="text-muted mb-0">Aucun RDV aujourd’hui</p>
           )}
         </div>
       </div>
 
-      {/* Dernier client */}
+      {/* ================= NOUVEAU CLIENT ================= */}
       <div className="col-md-4">
         <div className="card p-3 shadow-sm h-100">
-          <h6>👤 Dernier client</h6>
+
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h6 className="mb-0 d-flex align-items-center">
+              <i className="bi bi-person-plus me-2 fs-5 text-info" />
+              Nouveau client
+            </h6>
+
+            {lastClient && getClientStatusBadge(lastClient.status)}
+          </div>
 
           {lastClient ? (
             <>
-              <h5>
+              <div className="fw-semibold">
                 {lastClient.firstName} {lastClient.name}
-              </h5>
+              </div>
+
               <small className="text-muted">
-                {lastClient.status}
-              </small>
-              <small className="text-muted">
-                {lastClient.projectType}
+                {lastClient.projectType || "Projet non défini"}
               </small>
             </>
           ) : (
-            <p className="text-muted">Aucun client</p>
+            <p className="text-muted mb-0">Aucun client</p>
           )}
         </div>
       </div>
 
-      {/* Dernière vente */}
+      {/* ================= DERNIÈRE VENTE ================= */}
       <div className="col-md-4">
         <div className="card p-3 shadow-sm h-100">
-          <h6>💰 Dernière vente</h6>
-          <div className="mt-2">
-          <span className="badge bg-success">
-          Gagné
-          </span>
+
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h6 className="mb-0 d-flex align-items-center">
+              <i className="bi bi-cash-stack me-2 fs-5 text-success" />
+              Dernière vente
+            </h6>
+
+            {lastSale && getSaleStatusBadge(lastSale.status)}
           </div>
 
           {lastSale ? (
             (() => {
-                const client = clients.find(c => c.id === lastSale.clientId);
+              const client = clients.find(c => c.id === lastSale.clientId);
 
-                return (
+              return (
                 <>
-                    <strong>
-                        {client
-                        ? `${client.firstName} ${client.name}`
-                        : `Client #${lastSale.clientId}`}
-                    </strong>
-                    <h5>{lastSale.amount} €</h5>
+                  <div className="fw-semibold">
+                    {client
+                      ? `${client.firstName} ${client.name}`
+                      : `Client #${lastSale.clientId}`}
+                  </div>
 
+                  <h5 className="mb-1">{lastSale.amount} €</h5>
 
-                    <div className="mt-2">
-                    </div>
-
-                    <small className="text-muted">
+                  <small className="text-muted">
                     Commission : {lastSale.commission} €
-                    </small>
+                  </small>
                 </>
-                );
+              );
             })()
-            ) : (
-            <p className="text-muted">Aucune vente</p>
-            )}
+          ) : (
+            <p className="text-muted mb-0">Aucune vente</p>
+          )}
         </div>
       </div>
 

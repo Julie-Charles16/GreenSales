@@ -40,10 +40,6 @@ const SaleDeleteModal: React.FC<Props> = ({
           </div>
 
           <div className="modal-footer">
-            <button className="btn btn-secondary" onClick={onClose}>
-              Annuler
-            </button>
-
             <button className="btn btn-danger" onClick={onConfirm}>
               Supprimer
             </button>

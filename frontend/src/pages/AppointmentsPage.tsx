@@ -47,11 +47,38 @@ const AppointmentsPage: React.FC = () => {
 
   // init modales
   useEffect(() => {
-    if (formModalRef.current)
-      setFormModal(new Modal(formModalRef.current, { backdrop: "static" }));
-    if (deleteModalRef.current)
+    if (formModalRef.current) {
+      const modal = new Modal(formModalRef.current, {
+        backdrop: true,
+        keyboard: true,
+      });
+
+      setFormModal(modal);
+    }
+
+    if (deleteModalRef.current) {
       setDeleteModal(new Modal(deleteModalRef.current));
+    }
   }, []);
+
+  // RESET quand modal se ferme
+  useEffect(() => {
+  const el = formModalRef.current;
+  if (!el) return;
+
+  const handleHidden = () => {
+    setEditing(null);
+  };
+
+  el.addEventListener("hidden.bs.modal", handleHidden);
+
+  return () => {
+    el.removeEventListener("hidden.bs.modal", handleHidden);
+  };
+}, []);
+
+
+
 
   // load data
   useEffect(() => {
@@ -84,6 +111,10 @@ const AppointmentsPage: React.FC = () => {
     return client ? `${client.name} ${client.firstName}` : "Client inconnu";
   };
 
+  const getClientAddress = (clientId: number) => {
+    const client = clients.find((c) => c.id === clientId);
+    return client ? `${client.address} , ${client.city}` : "Non défini";
+  }
   const getClientProjectType = (clientId: number) => {
     const client = clients.find((c) => c.id === clientId);
     return client?.projectType || "Non défini";
@@ -240,6 +271,7 @@ const AppointmentsPage: React.FC = () => {
         clients={clients}
         getClientName={getClientName}
         getClientProjectType={getClientProjectType}
+        getClientAddress={getClientAddress}
         getStatusColor={getStatusColor}
         getStatusBorderColor={getStatusBorderColor}
         formatDate={formatDate}
@@ -260,6 +292,7 @@ const AppointmentsPage: React.FC = () => {
         appointments={filteredAppointments}
         clients={clients}
         getClientName={getClientName}
+        getClientAddress={getClientAddress}
         getClientProjectType={getClientProjectType}
         getStatusColor={getStatusColor}
         getStatusBorderColor={getStatusBorderColor}
@@ -276,38 +309,16 @@ const AppointmentsPage: React.FC = () => {
       )}
 
       {/* MODAL FORM ADD/EDIT */}
-      <div className="modal fade" ref={formModalRef}>
+      <div className="modal fade" ref={formModalRef} tabIndex={-1}>
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">
-                {editing && editing.id !== 0 ? "Modifier" : "Ajouter"} un RDV
-              </h5>
-
-              <div className="d-flex align-items-center ms-auto gap-2">
-                {editing && editing.id !== 0 && (
-                  <button
-                    className="btn btn-sm btn-outline-danger"
-                    onClick={handleDeleteClick}
-                  >
-                    Supprimer
-                  </button>
-                )}
-                <button
-                  className="btn-close"
-                  onClick={() => formModal?.hide()}
-                ></button>
-              </div>
-            </div>
-
-            <div className="modal-body">
-              <AppointmentForm
-                initialData={editing}
-                onSubmit={handleSubmit}
-                onCancel={() => formModal?.hide()}
-                clients={clients}
-              />
-            </div>
+            <AppointmentForm
+              initialData={editing}
+              onSubmit={handleSubmit}
+              onCancel={() => formModal?.hide()}
+              onDelete={handleDeleteClick}
+              clients={clients}
+            />
           </div>
         </div>
       </div>

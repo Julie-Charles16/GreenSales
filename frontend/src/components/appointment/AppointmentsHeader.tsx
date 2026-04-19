@@ -38,8 +38,8 @@ const AppointmentsHeader: React.FC<Props> = ({ view, setView, onAdd }) => {
           </button>
         </div>
         <button className="btn btn-primary" onClick={onAdd}>
-          + Ajouter
-        </button>
+          <i className="bi bi-calendar-plus"></i>
+          </button>
       </div>
     </div>
   );

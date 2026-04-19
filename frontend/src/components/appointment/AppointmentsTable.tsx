@@ -6,6 +6,7 @@ interface Props {
   clients: Client[];
   getClientName: (clientId: number) => string;
   getClientProjectType: (clientId: number) => string;
+  getClientAddress: (clientId: number) => string;
   getStatusColor: (status: string) => string;
   getStatusBorderColor: (status: string) => string;
   formatDate: (date: string) => string;
@@ -17,6 +18,7 @@ const AppointmentsTable: React.FC<Props> = ({
   appointments,
   getClientName,
   getClientProjectType,
+  getClientAddress,
   getStatusColor,
   getStatusBorderColor,
   formatDate,
@@ -31,8 +33,8 @@ const AppointmentsTable: React.FC<Props> = ({
             <tr>
               <th>Client</th>
               <th>Date</th>
-              <th>Projet</th>
-              <th>Commentaire</th>
+              <th>Adresse</th>
+              {/* <th>Commentaire</th> */}
               <th>Statut</th>
               <th>Actions</th>
             </tr>
@@ -63,17 +65,17 @@ const AppointmentsTable: React.FC<Props> = ({
                   </small>
                 </td>
 
-                {/* Projet */}
+                {/* Adresse */}
                 <td>
-                  {getClientProjectType(appt.clientId)}
+                  {getClientAddress(appt.clientId)}
                 </td>
 
                 {/* Commentaire */}
-                <td>
+                {/* <td>
                   <span className="text-muted">
                     {appt.comment || "—"}
                   </span>
-                </td>
+                </td> */}
 
                 {/* Statut */}
                 <td>
@@ -89,14 +91,14 @@ const AppointmentsTable: React.FC<Props> = ({
                       className="btn btn-sm btn-outline-primary"
                       onClick={() => onEdit(appt)}
                     >
-                      ✏️
+                    <i className="bi bi-pencil"></i>
                     </button>
 
                     <button
                       className="btn btn-sm btn-outline-danger"
                       onClick={() => onDelete(appt)}
                     >
-                      🗑️
+                    <i className="bi bi-trash"></i>
                     </button>
                   </div>
                 </td>

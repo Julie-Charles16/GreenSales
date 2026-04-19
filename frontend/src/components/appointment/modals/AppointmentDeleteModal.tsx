@@ -61,10 +61,6 @@ const AppointmentDeleteModal: React.FC<Props> = ({
 
           {/* FOOTER */}
           <div className="modal-footer">
-            <button className="btn btn-secondary" onClick={onClose}>
-              Annuler
-            </button>
-
             <button className="btn btn-danger" onClick={onConfirm}>
               Supprimer
             </button>

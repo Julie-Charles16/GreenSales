@@ -61,81 +61,96 @@ const getCommissionByStatus = (status: string) => {
 };
 
   return (
-    <div className="d-flex gap-3 overflow-auto pb-3">
+  <div className="d-flex justify-content-center">
+    
+    <div
+      className="d-flex gap-5 overflow-auto pb-4 px-4"
+      style={{
+        maxWidth: "100%",
+        alignItems: "flex-start",
+      }}
+    >
       {statuses.map((status) => {
         const columnSales = sales.filter((s) => s.status === status);
 
         return (
           <div
             key={status}
-            className="rounded-4 p-3 shadow-sm"
+            className="rounded-4 p-4 shadow-sm"
             style={{
-            minWidth: "300px",
-            backgroundColor: getColumnColor(status),
+              minWidth: "380px",
+              backgroundColor: getColumnColor(status),
             }}
           >
             {/* HEADER COLONNE */}
-            <div className="mb-3">
-              <h6 className="fw-bold mb-1">{status}</h6>
-              <small className="text-muted">
+            <div className="mb-4">
+              <h6 className="fw-bold mb-2 fs-6">{status}</h6>
+
+              <small className="text-muted d-block mb-2">
                 {columnSales.length} vente(s)
               </small>
-              <div className="fw-bold">
-                💰 {getTotalByStatus(status)} €
+
+              <div className="fw-bold fs-5">
+                <i className="bi bi-cash-stack me-1"></i>
+                {getTotalByStatus(status)} €
               </div>
-              <div className="fw-bold text-success">
-                💸 {getCommissionByStatus(status)} €
+
+              <div className="fw-bold text-success fs-6 mt-1">
+                <i className="bi bi-cash-coin me-1"></i>
+                {getCommissionByStatus(status)} €
               </div>
             </div>
 
             {/* CARDS */}
-            <div className="d-flex flex-column gap-2">
+            <div className="d-flex flex-column gap-4">
               {columnSales.map((sale) => (
                 <div
                   key={sale.id}
-                  className="card border-0 shadow-sm rounded-4 p-3 card-column-hover"
-                  style={{ cursor: "pointer" }}
+                  className="card border-0 shadow-sm rounded-4 p-4"
                 >
-                  <div className="fw-bold">
+                  <div className="fw-bold fs-6 mb-1">
                     {getClientName(sale.clientId)}
                   </div>
 
-                  <small className="text-muted">
+                  <small className="text-muted d-block mb-2">
                     {getProject(sale.clientId)}
                   </small>
 
                   <div className="d-flex justify-content-between align-items-center mt-2">
-                    <span className="fw-semibold">💰 {sale.amount} €</span>
-                    <span className="badge bg-success">
-                      +{sale.commission}€
+                    <span className="fw-semibold fs-5">
+                      {sale.amount} €
+                    </span>
+
+                    <span className="badge bg-success px-3 py-2">
+                      +{sale.commission} €
                     </span>
                   </div>
 
-                  <small className="text-muted">
+                  <small className="text-muted d-block mt-2">
                     {formatDate(sale.signedAt)}
                   </small>
 
                   {/* ACTIONS */}
-                  <div className="d-flex justify-content-end gap-2 mt-2">
+                  <div className="d-flex justify-content-end gap-2 mt-3">
                     <button
                       className="btn btn-sm btn-outline-primary"
                       onClick={() => onEdit(sale)}
                     >
-                      ✏️
+                      <i className="bi bi-pencil"></i>
                     </button>
 
                     <button
                       className="btn btn-sm btn-outline-danger"
                       onClick={() => onDelete(sale)}
                     >
-                      🗑️
+                      <i className="bi bi-trash"></i>
                     </button>
                   </div>
                 </div>
               ))}
 
               {columnSales.length === 0 && (
-                <div className="text-muted text-center small">
+                <div className="text-muted text-center small py-4">
                   Aucune vente
                 </div>
               )}
@@ -144,7 +159,9 @@ const getCommissionByStatus = (status: string) => {
         );
       })}
     </div>
-  );
+
+  </div>
+);
 };
 
 export default SalesPipeline;

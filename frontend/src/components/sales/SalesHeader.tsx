@@ -20,7 +20,7 @@ const SalesHeader: React.FC<Props> = ({ view, setView, onAdd }) => {
             className={`btn ${view === "table" ? "btn-dark" : "btn-outline-dark"}`}
             onClick={() => setView("table")}
           >
-            Tableau
+            Liste
           </button>
 
           <button
@@ -31,8 +31,8 @@ const SalesHeader: React.FC<Props> = ({ view, setView, onAdd }) => {
           </button>
         </div>
         <button className="btn btn-primary" onClick={onAdd}>
-          + Ajouter
-        </button>
+          <i className="bi bi-cart-plus"></i>
+          </button>
       </div>
     </div>
     );

@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import type { Appointment, AppointmentFormData } from "../../../types/appointment";
 import type { Client } from "../../../types/client";
 
 interface Props {
   onSubmit: (data: AppointmentFormData) => void;
   onCancel: () => void;
+  onDelete?: () => void;
   clients: Client[];
   initialData?: Appointment | null;
 }
@@ -22,6 +23,7 @@ const getInitialForm = (
 const AppointmentForm: React.FC<Props> = ({
   onSubmit,
   onCancel,
+  onDelete,
   clients,
   initialData,
 }) => {
@@ -29,7 +31,6 @@ const AppointmentForm: React.FC<Props> = ({
     getInitialForm(initialData, clients)
   );
 
-  // 🔥 FIX pré-remplissage
   useEffect(() => {
     setFormData(getInitialForm(initialData, clients));
   }, [initialData, clients]);
@@ -63,121 +64,106 @@ const AppointmentForm: React.FC<Props> = ({
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-const handleAutoResize = () => {
-  if (textareaRef.current) {
-    textareaRef.current.style.height = "auto";
-    textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
-  }
-};
+  const handleAutoResize = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height =
+        textareaRef.current.scrollHeight + "px";
+    }
+  };
+
+  const isEdit = initialData && initialData.id !== 0;
 
   return (
-    
     <div className="card shadow-sm p-4">
-  <h5 className="mb-4 text-primary">
-    <i className="bi bi-calendar-check me-2"></i>
-    {initialData?.id ? "Modifier le rendez-vous" : "Nouveau rendez-vous"}
-  </h5>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h5 className="text-primary m-0">
+          <i className="bi bi-calendar-check me-2"></i>
+          {isEdit ? "Modifier le rendez-vous" : "Nouveau rendez-vous"}
+        </h5>
 
-  <form onSubmit={handleSubmit}>
-    {/* Date */}
-    <div className="mb-3">
-      <label className="form-label fw-semibold">Date</label>
-      <div className="input-group">
-        <span className="input-group-text">
-          <i className="bi bi-calendar-event"></i>
-        </span>
-        <input
-          type="datetime-local"
-          name="date"
-          className="form-control"
-          value={formData.date}
-          onChange={handleChange}
-          required
-        />
+        <button className="btn-close" onClick={onCancel}></button>
       </div>
-    </div>
 
-    {/* Client */}
-    <div className="mb-3">
-      <label className="form-label fw-semibold">Client</label>
-      <div className="input-group">
-        <span className="input-group-text">
-          <i className="bi bi-person"></i>
-        </span>
-        <select
-          name="clientId"
-          className="form-select"
-          value={formData.clientId}
-          onChange={handleChange}
-        >
-          {clients.map((client) => (
-            <option key={client.id} value={client.id}>
-              {client.name} {client.firstName}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
+      <form onSubmit={handleSubmit}>
+        {/* Date */}
+        <div className="mb-3">
+          <label className="form-label fw-semibold">Date</label>
+          <input
+            type="datetime-local"
+            name="date"
+            className="form-control"
+            value={formData.date}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-    {/* Statut */}
-    <div className="mb-3">
-      <label className="form-label fw-semibold">Statut</label>
-      <div className="input-group">
-        <span className="input-group-text">
-          <i className="bi bi-flag"></i>
-        </span>
-        <select
-          name="status"
-          className="form-select"
-          value={formData.status}
-          onChange={handleChange}
-        >
-          <option value="PLANIFIE">Planifié</option>
-          <option value="TERMINE">Terminé</option>
-          <option value="ANNULE">Annulé</option>
-        </select>
-      </div>
-    </div>
+        {/* Client */}
+        <div className="mb-3">
+          <label className="form-label fw-semibold">Client</label>
+          <select
+            name="clientId"
+            className="form-select"
+            value={formData.clientId}
+            onChange={handleChange}
+          >
+            {clients.map((client) => (
+              <option key={client.id} value={client.id}>
+                {client.name} {client.firstName}
+              </option>
+            ))}
+          </select>
+        </div>
 
-    {/* Commentaire */}
-    <div className="mb-4">
-      <label className="form-label fw-semibold">Commentaire</label>
-      <div className="input-group">
-        <span className="input-group-text">
-          <i className="bi bi-chat-left-text"></i>
-        </span>
-        <textarea
-          name="comment"
-          className="form-control"
-          value={formData.comment}
-          placeholder="Ajouter un commentaire..."
-          onChange={(e) => {
-            handleChange(e);
-            handleAutoResize();
-          }}
-          rows={2}
-        />
-      </div>
-    </div>
+        {/* Statut */}
+        <div className="mb-3">
+          <label className="form-label fw-semibold">Statut</label>
+          <select
+            name="status"
+            className="form-select"
+            value={formData.status}
+            onChange={handleChange}
+          >
+            <option value="PLANIFIE">Planifié</option>
+            <option value="TERMINE">Terminé</option>
+            <option value="ANNULE">Annulé</option>
+          </select>
+        </div>
 
-    {/* Boutons */}
-    <div className="d-flex justify-content-between">
-      <button
-        type="button"
-        className="btn btn-outline-secondary"
-        onClick={onCancel}
-      >
-        <i className="bi bi-x-circle me-1"></i>
-        Annuler
-      </button>
+        {/* Commentaire */}
+        <div className="mb-4">
+          <label className="form-label fw-semibold">Commentaire</label>
+          <textarea
+            ref={textareaRef}
+            name="comment"
+            className="form-control"
+            value={formData.comment}
+            onChange={(e) => {
+              handleChange(e);
+              handleAutoResize();
+            }}
+            rows={2}
+          />
+        </div>
 
-      <button type="submit" className="btn btn-primary">
-        <i className="bi bi-check-circle me-1"></i>
-        Enregistrer
-      </button>
+        <div className="d-flex justify-content-between">
+          <button type="submit" className="btn btn-primary">
+            {isEdit ? "Modifier" : "Ajouter"}
+          </button>
+
+          {isEdit && (
+            <button
+              type="button"
+              className="btn btn-outline-danger"
+              onClick={onDelete}
+            >
+              Supprimer
+            </button>
+          )}
+        </div>
+      </form>
     </div>
-  </form>
-</div>
   );
 };
 

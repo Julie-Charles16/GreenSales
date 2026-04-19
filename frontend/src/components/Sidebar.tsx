@@ -17,7 +17,14 @@ const Sidebar = () => {
       : "text-white");
 
   return (
-    <div className="bg-dark text-white d-flex flex-column p-3 vh-100" style={{ width: "250px" }}
+<div
+  className="bg-dark text-white d-flex flex-column p-3"
+  style={{
+    width: "250px",
+    height: "100vh",
+    position: "sticky",
+    top: 0
+  }}
     >
       {/* Logo */}
       <h4 className="fw-bold mb-4">
@@ -32,8 +39,7 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation */}
-      <ul className="nav nav-pills flex-column gap-2">
-
+<ul className="nav nav-pills flex-column gap-2 flex-grow-1 overflow-auto">
         <li>
           <NavLink to="/dashboard" className={linkClass}>
             <i className="bi bi-speedometer2"></i>

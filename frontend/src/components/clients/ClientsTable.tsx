@@ -1,4 +1,5 @@
 import type { Client } from "../../types/client";
+import "../../ClientsTable.css";
 
 interface Props {
   clients: Client[];
@@ -35,9 +36,11 @@ const ClientsTable: React.FC<Props> = ({
             {clients.map((client) => (
               <tr
                 key={client.id}
+                className="table-row-hover"
                 style={{
-                  borderLeft: `4px solid ${getStatusBorderColor(client.status)}`,
+                  borderLeft: `4px solid ${getStatusBorderColor(client.status)}`
                 }}
+                onClick={() => onView(client)}
               >
                 {/* Nom */}
                 <td>
@@ -69,25 +72,25 @@ const ClientsTable: React.FC<Props> = ({
                 {/* Actions */}
                 <td>
                   <div className="d-flex gap-2">
-                    <button
-                      className="btn btn-sm btn-outline-info"
-                      onClick={() => onView(client)}
-                    >
-                      👁️
-                    </button>
 
                     <button
                       className="btn btn-sm btn-outline-primary"
-                      onClick={() => onEdit(client)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(client);
+                      }}
                     >
-                      ✏️
+                      <i className="bi bi-pencil"></i>
                     </button>
 
                     <button
                       className="btn btn-sm btn-outline-danger"
-                      onClick={() => onDelete(client)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(client);
+                      }}
                     >
-                      🗑️
+                      <i className="bi bi-trash"></i>
                     </button>
                   </div>
                 </td>

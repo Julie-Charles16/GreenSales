@@ -59,7 +59,7 @@ const ClientsPage: React.FC = () => {
   // Init Bootstrap modals
   useEffect(() => {
     if (formModalRef.current) {
-      setFormModal(new Modal(formModalRef.current, { backdrop: 'static' }));
+      setFormModal(new Modal(formModalRef.current));
     }
     if (detailModalRef.current) {
       setDetailModal(new Modal(detailModalRef.current));
@@ -239,6 +239,7 @@ const ClientsPage: React.FC = () => {
       <ClientsCards
         clients={filteredClients}
         getStatusColor={getStatusColor}
+        getStatusBorderColor={getStatusBorderColor}
         onView={handleViewDetail}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
@@ -249,18 +250,12 @@ const ClientsPage: React.FC = () => {
       <div className="modal fade" ref={formModalRef} tabIndex={-1}>
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
-            <div className="modal-header">
-              <h5>{editingClient ? "Modifier" : "Ajouter"} un client</h5>
-              <button className="btn-close" onClick={() => formModal?.hide()}></button>
-            </div>
-            <div className="modal-body">
               <ClientForm
                 key={editingClient?.id || "new"}
                 initialData={editingClient}
                 onSubmit={handleSubmit}
                 onCancel={() => formModal?.hide()}
-              />     
-            </div>
+              />
           </div>
         </div>
       </div>

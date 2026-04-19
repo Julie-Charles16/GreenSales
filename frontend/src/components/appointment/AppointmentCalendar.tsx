@@ -105,12 +105,15 @@ const AppointmentCalendar: React.FC<Props> = ({
             });
 
             const tooltipContent = `
-              <div>
-                <strong>${safe(info.event.title)}</strong><br/>
-                📅 ${formattedDate}<br/>
-                📍 ${safe(address)}<br/>
-                🏗️ ${safe(projectType)}<br/>
-                📝 ${safe(comment) || "Pas de commentaire"}
+              <div class="d-flex flex-column gap-1">
+                <strong class="mb-1">${safe(info.event.title)}</strong>
+
+                <div><i class="bi bi-calendar-event me-1 text-primary"></i> ${formattedDate}</div>
+                <div><i class="bi bi-geo-alt me-1 text-danger"></i> ${safe(address)}</div>
+                <div><i class="bi bi-briefcase me-1 text-warning"></i> ${safe(projectType)}</div>
+                <div><i class="bi bi-chat-left-text me-1 text-secondary"></i> ${
+                  safe(comment) || "Pas de commentaire"
+                }</div>
               </div>
             `;
 
@@ -119,6 +122,7 @@ const AppointmentCalendar: React.FC<Props> = ({
               html: true,
               placement: "top",
               trigger: "hover",
+              customClass: "custom-tooltip",
             });
 
             // 🔥 nettoyage mémoire
