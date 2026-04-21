@@ -14,6 +14,7 @@ model User {
   email        String        @unique
   password     String
   createdAt    DateTime      @default(now())
+
   clients      Client[]
   appointments Appointment[]
   sales        Sale[]
@@ -31,8 +32,10 @@ model Client {
   projectType  String
   status       ClientStatus
   createdAt    DateTime      @default(now())
+
   userId       Int
-  user         User          @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   appointments Appointment[]
   sales        Sale[]
 }
@@ -42,10 +45,12 @@ model Appointment {
   date     DateTime?
   status   AppointmentStatus
   comment  String?
+
   clientId Int
   userId   Int
-  client   Client            @relation(fields: [clientId], references: [id])
-  user     User              @relation(fields: [userId], references: [id])
+
+  client   Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("appointment")
 }
@@ -56,10 +61,12 @@ model Sale {
   commission Float?
   status     SaleStatus
   signedAt   DateTime?
+
   clientId   Int
   userId     Int
-  client     Client     @relation(fields: [clientId], references: [id])
-  user       User       @relation(fields: [userId], references: [id])
+
+  client     Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sale")
 }
