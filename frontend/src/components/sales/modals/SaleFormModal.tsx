@@ -109,7 +109,8 @@ const SaleForm: React.FC<Props> = ({
         {/* Commission */}
         <div className="mb-3">
           <div className="alert alert-success py-2 mb-0">
-            💸 Commission estimée : <strong>{commission} €</strong>
+            <i className="bi bi-cash-coin me-2 text-success"></i>
+            Commission estimée : <strong>{commission} €</strong>
           </div>
         </div>
 

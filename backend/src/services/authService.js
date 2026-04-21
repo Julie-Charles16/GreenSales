@@ -12,7 +12,7 @@ function generateToken(user) {
       pseudo: user.pseudo,
     },
     process.env.JWT_SECRET,
-    { expiresIn: '1h' }
+    { expiresIn: '1d' }
   );
 }
 

@@ -1,6 +1,4 @@
 import type { Client } from "../../types/client";
-import "../../ClientsTable.css";
-
 interface Props {
   clients: Client[];
   getStatusColor: (status: string) => string;
