@@ -163,6 +163,7 @@ const ClientsPage: React.FC = () => {
     await loadClients();
     formModal?.hide();
   };
+  
 
   // ==============================
   // 🔹 ACTIONS - détail

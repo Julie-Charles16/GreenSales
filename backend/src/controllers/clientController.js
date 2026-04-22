@@ -23,14 +23,57 @@ const getClientById = async (req, res) => {
 
 const createClient = async (req, res) => {
   try {
+    const {
+      name,
+      firstName,
+      address,
+      city,
+      postalCode,
+      email,
+      phone,
+      projectType,
+      status,
+    } = req.body;
+
+    // 🔴 VALIDATION BACK (OBLIGATOIRE)
+    if (!name || !firstName || !email) {
+      return res.status(400).json({
+        message: "Nom, prénom et email sont obligatoires",
+      });
+    }
+
+    // 🔴 CHECK EMAIL EXISTANT
+    const existingClient = await prisma.client.findFirst({
+  where: {
+    email,
+    userId: req.user.id,
+  },
+});
+
+    if (existingClient) {
+      return res.status(409).json({
+        message: "Cet email est déjà utilisé",
+      });
+    }
+
     const client = await clientService.createClient({
-      ...req.body,
-      userId: req.user.id, // 🔥 IMPORTANT
+      name,
+      firstName,
+      address,
+      city,
+      postalCode,
+      email,
+      phone,
+      projectType,
+      status,
+      userId: req.user.id,
     });
 
-    res.status(201).json(client);
+    return res.status(201).json(client);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    return res.status(500).json({
+      message: "Erreur serveur",
+    });
   }
 };
 
@@ -44,8 +87,8 @@ const updateClient = async (req, res) => {
 
     res.json(client);
   } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
+  return res.status(400).json({ message: err.message });
+}
 };
 
 const deleteClient = async (req, res) => {

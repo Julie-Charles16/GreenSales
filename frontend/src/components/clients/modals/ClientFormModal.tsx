@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import type { Client, ClientFormData } from "../../../types/client";
 
 interface Props {
-  onSubmit: (data: ClientFormData) => void;
+  onSubmit: (data: ClientFormData) => Promise<void>;
   onCancel: () => void;
   initialData?: Client | null;
+  isOpen?: boolean; // 🔥 AJOUT IMPORTANT
 }
 
 const getInitialForm = (initialData?: Client | null): ClientFormData => ({
@@ -23,14 +24,23 @@ const ClientForm: React.FC<Props> = ({
   onSubmit,
   onCancel,
   initialData,
+  isOpen,
 }) => {
   const [formData, setFormData] = useState<ClientFormData>(
     getInitialForm(initialData)
   );
 
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // 🔥 RESET COMPLET QUAND MODAL S’OUVRE
   useEffect(() => {
-    setFormData(getInitialForm(initialData));
-  }, [initialData]);
+    if (isOpen) {
+      setFormData(getInitialForm(initialData));
+      setError(null);
+      setLoading(false);
+    }
+  }, [isOpen, initialData]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -38,12 +48,46 @@ const ClientForm: React.FC<Props> = ({
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit(formData);
+    setError(null);
 
-    if (!initialData) {
-      setFormData(getInitialForm(null));
+    if (
+      !formData.name.trim() ||
+      !formData.firstName.trim() ||
+      !formData.email.trim()
+    ) {
+      setError("Nom, prénom et email sont obligatoires");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await onSubmit(formData);
+
+      if (!initialData) {
+        setFormData(getInitialForm(null));
+      }
+    } catch (err: unknown) {
+      let message = "Email déjà existant";
+
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "response" in err
+      ) {
+        const response = (err as {
+          response?: { data?: { message?: string } };
+        }).response;
+
+        if (typeof response?.data?.message === "string") {
+          message = response.data.message;
+        }
+      }
+
+      setError(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,7 +95,6 @@ const ClientForm: React.FC<Props> = ({
 
   return (
     <div className="card shadow-sm p-4">
-      {/* HEADER CUSTOM */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h5 className="text-primary m-0">
           <i className="bi bi-person-lines-fill me-2"></i>
@@ -61,8 +104,13 @@ const ClientForm: React.FC<Props> = ({
         <button className="btn-close" onClick={onCancel}></button>
       </div>
 
+      {error && (
+        <div className="alert alert-danger py-2">
+          {error}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
-        {/* Nom + prénom */}
         <div className="row">
           <div className="col-md-6 mb-3">
             <div className="input-group">
@@ -95,7 +143,6 @@ const ClientForm: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Email */}
         <div className="mb-3">
           <div className="input-group">
             <span className="input-group-text">
@@ -111,7 +158,6 @@ const ClientForm: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Téléphone */}
         <div className="mb-3">
           <div className="input-group">
             <span className="input-group-text">
@@ -127,7 +173,6 @@ const ClientForm: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Adresse */}
         <div className="mb-3">
           <div className="input-group">
             <span className="input-group-text">
@@ -143,7 +188,6 @@ const ClientForm: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Ville + code postal */}
         <div className="row">
           <div className="col-md-8 mb-3">
             <input
@@ -165,7 +209,6 @@ const ClientForm: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Projet */}
         <div className="mb-3">
           <div className="input-group">
             <span className="input-group-text">
@@ -181,7 +224,6 @@ const ClientForm: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Status */}
         <div className="mb-4">
           <label className="form-label fw-semibold">Statut</label>
           <select
@@ -198,11 +240,14 @@ const ClientForm: React.FC<Props> = ({
           </select>
         </div>
 
-        {/* FOOTER */}
         <div className="d-flex justify-content-end">
-          <button type="submit" className="btn btn-primary">
-            <i className="bi bi-check-circle me-1"></i>
-            {isEdit ? "Modifier" : "Ajouter"}
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? "Chargement..." : (
+              <>
+                <i className="bi bi-check-circle me-1"></i>
+                {isEdit ? "Modifier" : "Ajouter"}
+              </>
+            )}
           </button>
         </div>
       </form>

@@ -31,7 +31,7 @@ const createClient = (data) => {
 
 // UPDATE (sécurisé user)
 const updateClient = (id, data, userId) => {
-  return prisma.client.updateMany({
+  return prisma.client.update({
     where: {
       id,
       userId,
@@ -42,7 +42,7 @@ const updateClient = (id, data, userId) => {
 
 // DELETE (sécurisé user)
 const deleteClient = (id, userId) => {
-  return prisma.client.deleteMany({
+  return prisma.client.delete({
     where: {
       id,
       userId,

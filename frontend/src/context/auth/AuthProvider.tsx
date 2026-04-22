@@ -3,14 +3,19 @@ import type { ReactNode } from "react";
 import { AuthContext } from "./AuthContext";
 import type { User } from "../../types/user";
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+type AuthProviderProps = {
+  children: ReactNode;
+};
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("token")
   );
 
-  const [user, setUser] = useState<User | null>(
-    JSON.parse(localStorage.getItem("user") || "null")
-  );
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem("user");
+    return stored ? (JSON.parse(stored) as User) : null;
+  });
 
   const login = (newToken: string, newUser: User) => {
     localStorage.setItem("token", newToken);
