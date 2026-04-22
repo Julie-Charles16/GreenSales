@@ -284,18 +284,19 @@ const SalesPage: React.FC = () => {
       )}
 
       {/* MODAL FORM ADD/EDIT */}
-<div className="modal fade" ref={formModalRef} tabIndex={-1}>
-  <div className="modal-dialog modal-dialog-centered">
-    <div className="modal-content">
-        <SaleForm
-          initialData={editingSale}
-          onSubmit={handleSubmit}
-          onCancel={() => formModal?.hide()}
-          clients={clients}
-        />
-    </div>
-  </div>
-</div>
+      <div className="modal fade" ref={formModalRef} tabIndex={-1}>
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+              <SaleForm
+                key={editingSale?.id ?? "new-sale"}
+                initialData={editingSale}
+                onSubmit={handleSubmit}
+                onCancel={() => formModal?.hide()}
+                clients={clients}
+              />
+          </div>
+        </div>
+      </div>
 
       {/* MODAL DELETE */}
       <SaleDeleteModal

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import type { Sale, SaleFormData, SaleStatus } from "../../../types/sale";
 import type { Client } from "../../../types/client";
 
@@ -24,30 +24,35 @@ const SaleForm: React.FC<Props> = ({
   clients,
   initialData,
 }) => {
-  const [formData, setFormData] = useState<SaleFormData>(
+  const [error, setError] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState<SaleFormData>(() =>
     getInitialForm(initialData, clients)
   );
-
-  useEffect(() => {
-    setFormData(getInitialForm(initialData, clients));
-  }, [initialData, clients]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
 
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]:
         name === "amount" || name === "clientId"
           ? Number(value)
           : value,
-    });
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.amount <= 0) {
+      setError("Le montant doit être supérieur à 0 €");
+      return;
+    }
+
+    setError(null);
     onSubmit(formData);
 
     if (!initialData) {
@@ -73,8 +78,20 @@ const SaleForm: React.FC<Props> = ({
           {isEdit ? "Modifier la vente" : "Nouvelle vente"}
         </h5>
 
-        <button className="btn-close" onClick={onCancel}></button>
+        <button
+          className="btn-close"
+          onClick={() => {
+            setError(null);
+            onCancel();
+          }}
+        ></button>
       </div>
+
+      {error && (
+        <div className="alert alert-danger py-2">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         {/* Client */}
@@ -130,7 +147,10 @@ const SaleForm: React.FC<Props> = ({
         </div>
 
         <div className="d-flex justify-content-end">
-          <button type="submit" className="btn btn-primary">
+          <button
+            type="submit"
+            className="btn btn-primary"
+          >
             {isEdit ? "Modifier" : "Enregistrer"}
           </button>
         </div>

@@ -64,21 +64,18 @@ const AppointmentsPage: React.FC = () => {
   // RESET quand modal se ferme
   useEffect(() => {
   const el = formModalRef.current;
-  if (!el) return;
+    if (!el) return;
 
-  const handleHidden = () => {
-    setEditing(null);
-  };
+    const handleHidden = () => {
+      setEditing(null);
+    };
 
-  el.addEventListener("hidden.bs.modal", handleHidden);
+    el.addEventListener("hidden.bs.modal", handleHidden);
 
-  return () => {
-    el.removeEventListener("hidden.bs.modal", handleHidden);
-  };
-}, []);
-
-
-
+    return () => {
+      el.removeEventListener("hidden.bs.modal", handleHidden);
+    };
+  }, []);
 
   // load data
   useEffect(() => {
@@ -184,7 +181,7 @@ const AppointmentsPage: React.FC = () => {
       date: formattedDate.toISOString().slice(0, 16),
       status: "PLANIFIE",
       comment: "",
-      clientId: clients[0]?.id || 1,
+      clientId: 0,
       userId: 1,
     });
 
@@ -313,6 +310,7 @@ const AppointmentsPage: React.FC = () => {
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <AppointmentForm
+              key={editing?.id ?? editing?.date ?? "new"}
               initialData={editing}
               onSubmit={handleSubmit}
               onCancel={() => formModal?.hide()}

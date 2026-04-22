@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import type { Appointment, AppointmentFormData } from "../../../types/appointment";
 import type { Client } from "../../../types/client";
 
@@ -11,13 +11,12 @@ interface Props {
 }
 
 const getInitialForm = (
-  initialData?: Appointment | null,
-  clients?: Client[]
+  initialData?: Appointment | null
 ): AppointmentFormData => ({
   date: initialData ? initialData.date.slice(0, 16) : "",
   status: initialData?.status || "PLANIFIE",
   comment: initialData?.comment || "",
-  clientId: initialData?.clientId || clients?.[0]?.id || 1,
+  clientId: initialData?.clientId ?? 0, // 🔥 important
 });
 
 const AppointmentForm: React.FC<Props> = ({
@@ -27,38 +26,48 @@ const AppointmentForm: React.FC<Props> = ({
   clients,
   initialData,
 }) => {
-  const [formData, setFormData] = useState<AppointmentFormData>(
-    getInitialForm(initialData, clients)
-  );
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setFormData(getInitialForm(initialData, clients));
-  }, [initialData, clients]);
+  const [formData, setFormData] = useState<AppointmentFormData>(() =>
+    getInitialForm(initialData)
+  );
 
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => {
-    const target = e.target;
+    const { name, value } = e.target;
 
-    setFormData({
-      ...formData,
-      [target.name]:
-        target.name === "clientId" ? Number(target.value) : target.value,
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "clientId" ? Number(value) : value,
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.clientId === 0) {
+      setError("Veuillez sélectionner un client");
+      return;
+    }
+
+    if (!formData.date) {
+      setError("Veuillez renseigner une date");
+      return;
+    }
+
+    setError(null);
 
     onSubmit({
       ...formData,
       date: new Date(formData.date).toISOString(),
     });
 
+    // reset seulement en création
     if (!initialData) {
-      setFormData(getInitialForm(null, clients));
+      setFormData(getInitialForm(null));
     }
   };
 
@@ -82,8 +91,20 @@ const AppointmentForm: React.FC<Props> = ({
           {isEdit ? "Modifier le rendez-vous" : "Nouveau rendez-vous"}
         </h5>
 
-        <button className="btn-close" onClick={onCancel}></button>
+        <button
+          className="btn-close"
+          onClick={() => {
+            setError(null);
+            onCancel();
+          }}
+        ></button>
       </div>
+
+      {error && (
+        <div className="alert alert-danger py-2">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         {/* Date */}
@@ -102,12 +123,15 @@ const AppointmentForm: React.FC<Props> = ({
         {/* Client */}
         <div className="mb-3">
           <label className="form-label fw-semibold">Client</label>
+
           <select
             name="clientId"
-            className="form-select"
+            className={`form-select ${formData.clientId === 0 ? "is-invalid" : ""}`}
             value={formData.clientId}
             onChange={handleChange}
           >
+            <option value={0}>-- Sélectionner un client --</option>
+
             {clients.map((client) => (
               <option key={client.id} value={client.id}>
                 {client.name} {client.firstName}
@@ -119,6 +143,7 @@ const AppointmentForm: React.FC<Props> = ({
         {/* Statut */}
         <div className="mb-3">
           <label className="form-label fw-semibold">Statut</label>
+
           <select
             name="status"
             className="form-select"
@@ -134,6 +159,7 @@ const AppointmentForm: React.FC<Props> = ({
         {/* Commentaire */}
         <div className="mb-4">
           <label className="form-label fw-semibold">Commentaire</label>
+
           <textarea
             ref={textareaRef}
             name="comment"
