@@ -1,27 +1,21 @@
-const express = require('express');
-require('dotenv').config();
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
 
 const app = express();
-const cors = require('cors');
-// Middleware
-app.use(express.json());
+
 app.use(cors());
-// Routes
-const authRoutes = require('./routes/authRoute');
-const userRoutes = require('./routes/userRoute');
-const clientRoutes = require('./routes/clientRoute');
-const appointmentRoutes = require('./routes/appointmentRoute');
-const saleRoutes = require('./routes/saleRoute');
+app.use(express.json());
 
-app.use('/auth', authRoutes);
-app.use('/api/user', userRoutes);
-app.use('/clients', clientRoutes);
-app.use('/appointments', appointmentRoutes);
-app.use('/sales', saleRoutes);
+// routes
+app.use("/auth", require("./routes/authRoute"));
+app.use("/api/user", require("./routes/userRoute"));
+app.use("/clients", require("./routes/clientRoute"));
+app.use("/appointments", require("./routes/appointmentRoute"));
+app.use("/sales", require("./routes/saleRoute"));
 
-// Test route
-app.get('/', (req, res) => {
-  res.send('API GreenSales OK');
+app.get("/", (req, res) => {
+  res.send("API GreenSales OK");
 });
 
 const PORT = process.env.PORT || 8080;
