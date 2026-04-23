@@ -1,6 +1,5 @@
 // src/test.js
-const { PrismaClient } = require('./generated/prisma'); // CommonJS
-const prisma = new PrismaClient();
+const prisma = require("../prisma");
 
 // Enum correspondants à ton schema
 const ClientStatus = {
