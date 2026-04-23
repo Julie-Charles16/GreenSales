@@ -35,24 +35,9 @@ const createClient = async (req, res) => {
       status,
     } = req.body;
 
-    // 🔴 VALIDATION BACK (OBLIGATOIRE)
     if (!name || !firstName || !email) {
       return res.status(400).json({
         message: "Nom, prénom et email sont obligatoires",
-      });
-    }
-
-    // 🔴 CHECK EMAIL EXISTANT
-    const existingClient = await prisma.client.findFirst({
-  where: {
-    email,
-    userId: req.user.id,
-  },
-});
-
-    if (existingClient) {
-      return res.status(409).json({
-        message: "Cet email est déjà utilisé",
       });
     }
 
@@ -70,9 +55,10 @@ const createClient = async (req, res) => {
     });
 
     return res.status(201).json(client);
+
   } catch (err) {
     return res.status(500).json({
-      message: "Erreur serveur",
+      message: err.message,
     });
   }
 };
