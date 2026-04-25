@@ -11,11 +11,13 @@ interface Props {
 
 const getInitialForm = (
   initialData?: Sale | null,
-  clients?: Client[]
+  // clients?: Client[]
 ): SaleFormData => ({
   amount: initialData?.amount ?? 0,
   status: (initialData?.status as SaleStatus) ?? "EN_ATTENTE",
-  clientId: initialData?.clientId ?? clients?.[0]?.id ?? 0,
+  // clientId: initialData?.clientId ?? clients?.[0]?.id ?? 0,
+    clientId: initialData?.clientId ?? 0, // 🔥 important
+
 });
 
 const SaleForm: React.FC<Props> = ({
@@ -27,7 +29,7 @@ const SaleForm: React.FC<Props> = ({
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<SaleFormData>(() =>
-    getInitialForm(initialData, clients)
+    getInitialForm(initialData)
   );
 
   const handleChange = (
@@ -56,7 +58,7 @@ const SaleForm: React.FC<Props> = ({
     onSubmit(formData);
 
     if (!initialData) {
-      setFormData(getInitialForm(null, clients));
+      setFormData(getInitialForm(null));
     }
   };
 
@@ -97,12 +99,26 @@ const SaleForm: React.FC<Props> = ({
         {/* Client */}
         <div className="mb-3">
           <label className="form-label fw-semibold">Client</label>
-          <select
+          {/* <select
             className="form-select"
             name="clientId"
             value={formData.clientId}
             onChange={handleChange}
           >
+            {clients.map((client) => (
+              <option key={client.id} value={client.id}>
+                {client.name} {client.firstName}
+              </option>
+            ))}
+          </select> */}
+          <select
+            name="clientId"
+            className={`form-select ${formData.clientId === 0 ? "is-invalid" : ""}`}
+            value={formData.clientId}
+            onChange={handleChange}
+          >
+            <option value={0}>-- Sélectionner un client --</option>
+
             {clients.map((client) => (
               <option key={client.id} value={client.id}>
                 {client.name} {client.firstName}

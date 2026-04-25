@@ -32,12 +32,12 @@ const AppointmentsChart: React.FC<Props> = ({ appointments }) => {
     const last7Days = getLast7Days();
 
     return last7Days.map((day) => {
-      const planifie = appointments.filter((a) => {
+      const annule = appointments.filter((a) => {
         if (!a.date) return false;
 
         return (
           a.date.split("T")[0] === day &&
-          a.status === "PLANIFIE"
+          a.status === "ANNULE"
         );
       }).length;
 
@@ -52,7 +52,7 @@ const AppointmentsChart: React.FC<Props> = ({ appointments }) => {
 
       return {
         date: day,
-        planifie,
+        annule,
         termine,
       };
     });
@@ -83,10 +83,10 @@ const AppointmentsChart: React.FC<Props> = ({ appointments }) => {
           {/* RDV planifiés */}
           <Line
             type="monotone"
-            dataKey="planifie"
+            dataKey="annule"
             stroke="#ffc107"
             strokeWidth={2}
-            name="Planifiés"
+            name="Annulés"
           />
 
           {/* RDV terminés */}

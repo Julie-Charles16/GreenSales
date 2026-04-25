@@ -282,7 +282,7 @@ const SettingsPage: React.FC = () => {
 
               <div className="col-md-6">
                 <label className="form-label">Confirmation</label>
-                <input type="text" className="form-control" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="Tape SUPPRIMER" disabled={isDeleting} />
+                <input type="text" className="form-control" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="Tapez SUPPRIMER" disabled={isDeleting} />
               </div>
 
               {countdown > 0 && <div className="col-12 alert alert-warning text-center">Suppression dans {countdown}s...</div>}
