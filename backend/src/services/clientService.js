@@ -1,14 +1,21 @@
 const clientRepository = require('../repositories/clientRepository');
 
 // GET ALL (filtré par user)
-const getClients = async (userId) => {
+const getClients = async (userId, role) => {
+
+  if (role === "ADMIN") {
+    return await clientRepository.getAllClients();
+  }
+
   return await clientRepository.getAllClients(userId);
 };
 
 // GET BY ID (sécurisé user)
-const getClient = async (id, userId) => {
-  const client = await clientRepository.getClientById(id, userId);
-
+const getClient = async (id, userId, role) => {
+const client = await clientRepository.getClientById(
+    id,
+    role === "ADMIN" ? null : userId
+);
   if (!client) {
     throw new Error('Client non trouvé');
   }

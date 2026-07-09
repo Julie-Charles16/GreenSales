@@ -13,7 +13,7 @@ model User {
   email        String        @unique
   password     String
   createdAt    DateTime      @default(now())
-
+  role         Role          @default(COMMERCIAL)
   clients      Client[]
   appointments Appointment[]
   sales        Sale[]
@@ -31,10 +31,8 @@ model Client {
   projectType  String
   status       ClientStatus
   createdAt    DateTime      @default(now())
-
   userId       Int
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   appointments Appointment[]
   sales        Sale[]
 }
@@ -44,10 +42,8 @@ model Appointment {
   date     DateTime?
   status   AppointmentStatus
   comment  String?
-
   clientId Int
   userId   Int
-
   client   Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
   user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -60,14 +56,18 @@ model Sale {
   commission Float?
   status     SaleStatus
   signedAt   DateTime?
-
   clientId   Int
   userId     Int
-
   client     Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sale")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  COMMERCIAL
 }
 
 enum ClientStatus {

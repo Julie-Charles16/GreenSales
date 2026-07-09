@@ -10,6 +10,7 @@ function generateToken(user) {
       id: user.id,
       email: user.email,
       pseudo: user.pseudo,
+      role: user.role,
     },
     process.env.JWT_SECRET,
     { expiresIn: '1d' }

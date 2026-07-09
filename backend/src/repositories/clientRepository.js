@@ -1,18 +1,18 @@
 const prisma = require('../config/db');
 
 // GET ALL (par user)
-const getAllClients = (userId) => {
+const getAllClients = (userId = null) => {
   return prisma.client.findMany({
-    where: { userId },
+    where: userId ? { userId } : {},
   });
 };
 
 // GET BY ID (sécurisé user)
-const getClientById = (id, userId) => {
+const getClientById = (id, userId = null) => {
   return prisma.client.findFirst({
     where: {
       id,
-      userId,
+      ...(userId ? { userId } : {}),
     },
   });
 };
