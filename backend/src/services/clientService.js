@@ -1,21 +1,14 @@
 const clientRepository = require('../repositories/clientRepository');
 
 // GET ALL (filtré par user)
-const getClients = async (userId, role) => {
-
-  if (role === "ADMIN") {
-    return await clientRepository.getAllClients();
-  }
-
+const getClients = async (userId) => {
   return await clientRepository.getAllClients(userId);
 };
 
 // GET BY ID (sécurisé user)
-const getClient = async (id, userId, role) => {
-const client = await clientRepository.getClientById(
-    id,
-    role === "ADMIN" ? null : userId
-);
+const getClient = async (id, userId) => {
+const client = await clientRepository.getClientById(id, userId);
+
   if (!client) {
     throw new Error('Client non trouvé');
   }
@@ -45,7 +38,7 @@ const createClient = async (data) => {
 
 // UPDATE (sécurisé user)
 const updateClient = async (id, data, userId) => {
-  const client = await clientRepository.getClientById(id, userId);
+  const client = await clientRepository.getClientById(id,userId);
 
   if (!client) {
     throw new Error("Client introuvable");
@@ -55,7 +48,7 @@ const updateClient = async (id, data, userId) => {
     const existing = await clientRepository.getClientByEmail(data.email);
 
     if (existing && existing.id !== id) {
-      throw new Error('Email déjà utilisé');
+      throw new Error("Email déjà utilisé");
     }
   }
 
@@ -64,6 +57,7 @@ const updateClient = async (id, data, userId) => {
 
 // DELETE (sécurisé user)
 const deleteClient = async (id, userId) => {
+
   const client = await clientRepository.getClientById(id, userId);
 
   if (!client) {

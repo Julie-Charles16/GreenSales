@@ -2,10 +2,7 @@ const clientService = require('../services/clientService');
 
 const getAllClients = async (req, res) => {
   try {
-const clients = await clientService.getClients(
-  req.user.id,
-  req.user.role
-);
+const clients = await clientService.getClients(req.user.id);
     res.json(clients);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -17,7 +14,6 @@ const getClientById = async (req, res) => {
     const client = await clientService.getClient(
     parseInt(req.params.id),
     req.user.id,
-    req.user.role
 );
     res.json(client);
   } catch (err) {
@@ -72,7 +68,7 @@ const updateClient = async (req, res) => {
     const client = await clientService.updateClient(
       parseInt(req.params.id),
       req.body,
-      req.user.id
+      req.user.id,
     );
 
     res.json(client);
@@ -85,7 +81,7 @@ const deleteClient = async (req, res) => {
   try {
     await clientService.deleteClient(
       parseInt(req.params.id),
-      req.user.id
+      req.user.id,
     );
 
     res.json({ message: 'Client supprimé' });
