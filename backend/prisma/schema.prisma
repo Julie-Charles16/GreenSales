@@ -14,6 +14,11 @@ model User {
   password     String
   createdAt    DateTime      @default(now())
   role         Role          @default(COMMERCIAL)
+
+  managerId    Int?
+  manager      User?         @relation("Team", fields: [managerId], references: [id])
+  team         User[]        @relation("Team")
+  
   clients      Client[]
   appointments Appointment[]
   sales        Sale[]

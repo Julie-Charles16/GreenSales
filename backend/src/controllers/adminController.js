@@ -39,6 +39,30 @@ const updateUserRole = async (req, res) => {
   }
 };
 
+const updateUserManager = async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const { managerId } = req.body;
+
+    const user = await adminService.updateUserManager(
+      userId,
+      managerId
+    );
+
+    res.json({
+      message: "Manager assigné",
+      user,
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    res.status(400).json({
+      message: err.message,
+    });
+  }
+};
+
 const deleteUser = async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
@@ -64,5 +88,6 @@ const deleteUser = async (req, res) => {
 module.exports = {
   getAllUsers,
   updateUserRole,
+  updateUserManager,
   deleteUser,
 };

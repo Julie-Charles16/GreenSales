@@ -33,6 +33,24 @@ const updateUserRole = async (userId, newRole, currentUserId) => {
   );
 };
 
+const updateUserManager = async (userId, managerId) => {
+
+  const manager = await adminRepository.getUserById(managerId);
+
+  if (!manager) {
+    throw new Error("Manager introuvable");
+  }
+
+  if (manager.role !== "MANAGER") {
+    throw new Error("L'utilisateur choisi n'est pas un manager");
+  }
+
+  return await adminRepository.updateUserManager(
+    userId,
+    managerId
+  );
+};
+
 const deleteUser = async (userId, currentUserId) => {
 
   // Empêche un admin de supprimer son propre compte
@@ -49,5 +67,6 @@ const deleteUser = async (userId, currentUserId) => {
 module.exports = {
   getAllUsers,
   updateUserRole,
+  updateUserManager,
   deleteUser,
 };

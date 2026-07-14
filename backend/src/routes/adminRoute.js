@@ -21,6 +21,13 @@ router.patch(
   adminController.updateUserRole
 );
 
+router.patch(
+  "/users/:id/managerId",
+  authMiddleware,
+  roleMiddleware("ADMIN"),
+  adminController.updateUserManager
+);
+
 router.delete(
   "/users/:id",
   authMiddleware,
