@@ -14,5 +14,18 @@ router.get(
   adminController.getAllUsers
 );
 
+router.patch(
+  "/users/:id/role",
+  authMiddleware,
+  roleMiddleware("ADMIN"),
+  adminController.updateUserRole
+);
+
+router.delete(
+  "/users/:id",
+  authMiddleware,
+  roleMiddleware("ADMIN"),
+  adminController.deleteUser
+);
 
 module.exports = router;

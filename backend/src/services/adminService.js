@@ -1,11 +1,53 @@
 const adminRepository = require("../repositories/adminRepository");
 
+const ROLES = [
+  "ADMIN",
+  "MANAGER",
+  "COMMERCIAL",
+];
 
-const getUsers = async () => {
+const getAllUsers = async () => {
   return await adminRepository.getAllUsers();
 };
 
 
+const updateUserRole = async (userId, newRole, currentUserId) => {
+
+  // Vérification du rôle demandé
+  if (!ROLES.includes(newRole)) {
+    throw new Error("Rôle invalide");
+  }
+
+
+  // Empêche un admin de modifier son propre rôle
+  if (userId === currentUserId) {
+    throw new Error(
+      "Vous ne pouvez pas modifier votre propre rôle"
+    );
+  }
+
+
+  return await adminRepository.updateUserRole(
+    userId,
+    newRole
+  );
+};
+
+const deleteUser = async (userId, currentUserId) => {
+
+  // Empêche un admin de supprimer son propre compte
+  if (userId === currentUserId) {
+    throw new Error(
+      "Vous ne pouvez pas supprimer votre propre compte"
+    );
+  }
+
+  return await adminRepository.deleteUser(userId);
+};
+
+
 module.exports = {
-  getUsers,
+  getAllUsers,
+  updateUserRole,
+  deleteUser,
 };
