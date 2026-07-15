@@ -29,7 +29,9 @@ async function createSale(data) {
   const commission = calculateCommission(amount);
 
   return await saleRepository.create({
-    ...data,
+    amount,
+    clientId,
+    userId,
     commission,
     status: data.status || "EN_ATTENTE",
     signedAt: data.signedAt || new Date(),
@@ -37,7 +39,12 @@ async function createSale(data) {
 }
 
 // UPDATE
-async function updateSale(id, data, userId) {
+async function updateSale(id, data, userId, role) {
+
+  if (role !== "COMMERCIAL") {
+    throw new Error("Accès interdit");
+  }
+
   const sale = await saleRepository.findById(id, userId);
 
   if (!sale) {
@@ -47,34 +54,101 @@ async function updateSale(id, data, userId) {
   let updatedData = { ...data };
 
   if (data.amount) {
+
     if (data.amount <= 0) {
-      throw new Error("Le montant doit être supérieur à 0");
+      throw new Error(
+        "Le montant doit être supérieur à 0"
+      );
     }
 
-    updatedData.commission = calculateCommission(data.amount);
+    updatedData.commission = calculateCommission(
+      data.amount
+    );
   }
 
-  return await saleRepository.update(id, updatedData, userId);
+  return await saleRepository.update(
+    id,
+    updatedData,
+    userId
+  );
 }
-
 // GET ALL
-async function getAllSales(userId) {
+async function getAllSales(userId, role) {
+
+  // ADMIN
+  if (role === "ADMIN") {
+    return await saleRepository.findAll();
+  }
+
+
+  // MANAGER
+  if (role === "MANAGER") {
+
+    const ownSales = await saleRepository.findAll(userId);
+
+    const teamSales = await saleRepository.findTeamSales(userId);
+
+    return [
+      ...ownSales,
+      ...teamSales,
+    ];
+  }
+
+
+  // COMMERCIAL
   return await saleRepository.findAll(userId);
 }
 
 // GET BY ID
-async function getSaleById(id, userId) {
-  const sale = await saleRepository.findById(id, userId);
+async function getSaleById(id, userId, role) {
+
+  let sale;
+
+  // ADMIN : toutes les ventes
+  if (role === "ADMIN") {
+
+    sale = await saleRepository.findById(id);
+
+  }
+
+  // MANAGER : ses ventes + équipe
+  else if (role === "MANAGER") {
+
+    sale = await saleRepository.findById(id);
+
+    if (
+      sale &&
+      sale.userId !== userId &&
+      sale.user.managerId !== userId
+    ) {
+      throw new Error("Accès interdit");
+    }
+
+  }
+
+  // COMMERCIAL : uniquement ses ventes
+  else {
+
+    sale = await saleRepository.findById(id, userId);
+
+  }
+
 
   if (!sale) {
     throw new Error("Vente introuvable");
   }
 
+
   return sale;
 }
 
 // DELETE
-async function deleteSale(id, userId) {
+async function deleteSale(id, userId, role) {
+
+  if (role !== "COMMERCIAL") {
+    throw new Error("Accès interdit");
+  }
+
   const sale = await saleRepository.findById(id, userId);
 
   if (!sale) {

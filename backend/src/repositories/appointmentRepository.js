@@ -1,19 +1,43 @@
 const prisma = require('../config/db');
 
 // GET ALL (par user)
-const getAllAppointments = (userId) => {
+const getAllAppointments = (userId = null) => {
   return prisma.appointment.findMany({
-    where: { userId },
-    include: { client: true, user: true },
+    where: userId ? { userId } : {},
+    include: {
+      client: true,
+      user: true,
+    },
   });
 };
 
-// GET BY ID (sécurisé user)
-const getAppointmentById = (id, userId) => {
+const getTeamAppointments = (managerId) => {
+  return prisma.appointment.findMany({
+    where: {
+      user: {
+        managerId,
+      },
+    },
+    include: {
+      client: true,
+      user: true,
+    },
+  });
+};
+
+// GET BY ID
+const getAppointmentById = (id) => {
   return prisma.appointment.findFirst({
     where: {
       id,
-      userId,
+    },
+    include: {
+      user: {
+        select: {
+          managerId: true,
+        },
+      },
+      client: true,
     },
   });
 };
@@ -24,22 +48,20 @@ const createAppointment = (data) => {
 };
 
 // UPDATE (sécurisé user)
-const updateAppointment = (id, data, userId) => {
-  return prisma.appointment.updateMany({
+const updateAppointment = (id, data) => {
+  return prisma.appointment.update({
     where: {
       id,
-      userId,
     },
     data,
   });
 };
 
 // DELETE (sécurisé user)
-const deleteAppointment = (id, userId) => {
-  return prisma.appointment.deleteMany({
+const deleteAppointment = (id) => {
+  return prisma.appointment.delete({
     where: {
       id,
-      userId,
     },
   });
 };
@@ -57,6 +79,7 @@ const findExistingAppointment = (clientId, userId, date) => {
 
 module.exports = {
   getAllAppointments,
+  getTeamAppointments,
   getAppointmentById,
   createAppointment,
   updateAppointment,

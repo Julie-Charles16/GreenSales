@@ -105,6 +105,7 @@ const updateClient = async (id, data, userId, role) => {
     throw new Error("Client introuvable");
   }
 
+
   // COMMERCIAL : uniquement ses clients
   if (
     role === "COMMERCIAL" &&
@@ -114,21 +115,22 @@ const updateClient = async (id, data, userId, role) => {
   }
 
 
-
-  // MANAGER : uniquement son équipe
-  if (role === "MANAGER") {
-
-    if (
-      client.userId !== userId &&
-      client.user.managerId !== userId
-    ) {
-      throw new Error("Accès interdit");
-    }
-
+  // MANAGER : uniquement ses propres clients
+  if (
+    role === "MANAGER" &&
+    client.userId !== userId
+  ) {
+    throw new Error("Accès interdit");
   }
 
+
+  // ADMIN : pas de modification métier
+
+
   if (data.email) {
-    const existing = await clientRepository.getClientByEmail(data.email);
+
+    const existing =
+      await clientRepository.getClientByEmail(data.email);
 
     if (
       existing &&
@@ -136,8 +138,8 @@ const updateClient = async (id, data, userId, role) => {
     ) {
       throw new Error("Email déjà utilisé");
     }
-
   }
+
 
   return await clientRepository.updateClient(
     id,
@@ -155,6 +157,7 @@ const deleteClient = async (id, userId, role) => {
     throw new Error("Client introuvable");
   }
 
+
   // COMMERCIAL
   if (
     role === "COMMERCIAL" &&
@@ -163,17 +166,18 @@ const deleteClient = async (id, userId, role) => {
     throw new Error("Accès interdit");
   }
 
-  // MANAGER
-  if (role === "MANAGER") {
 
-    if (
-      client.userId !== userId &&
-      client.user.managerId !== userId
-    ) {
-      throw new Error("Accès interdit");
-    }
-
+  // MANAGER : uniquement ses propres clients
+  if (
+    role === "MANAGER" &&
+    client.userId !== userId
+  ) {
+    throw new Error("Accès interdit");
   }
+
+
+  // ADMIN : pas de suppression métier
+
 
   return await clientRepository.deleteClient(id);
 

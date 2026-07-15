@@ -2,7 +2,10 @@ const appointmentService = require('../services/appointmentService');
 
 const getAllAppointments = async (req, res) => {
   try {
-    const appointments = await appointmentService.getAppointments(req.user.id);
+const appointments = await appointmentService.getAppointments(
+    req.user.id,
+    req.user.role
+);
     res.json(appointments);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -13,7 +16,8 @@ const getAppointmentById = async (req, res) => {
   try {
     const appointment = await appointmentService.getAppointment(
       parseInt(req.params.id),
-      req.user.id
+      req.user.id,
+      req.user.role
     );
 
     res.json(appointment);
@@ -27,6 +31,7 @@ const createAppointment = async (req, res) => {
     const appointment = await appointmentService.createAppointment({
       ...req.body,
       userId: req.user.id,
+      role: req.user.role,
     });
 
     res.status(201).json(appointment);
@@ -40,7 +45,8 @@ const updateAppointment = async (req, res) => {
     const appointment = await appointmentService.updateAppointment(
       parseInt(req.params.id),
       req.body,
-      req.user.id
+      req.user.id,
+      req.user.role
     );
 
     res.json(appointment);
@@ -53,7 +59,8 @@ const deleteAppointment = async (req, res) => {
   try {
     await appointmentService.deleteAppointment(
       parseInt(req.params.id),
-      req.user.id
+      req.user.id,
+      req.user.role
     );
 
     res.json({ message: 'Rendez-vous supprimé' });
