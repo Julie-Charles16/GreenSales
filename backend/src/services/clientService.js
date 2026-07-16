@@ -71,11 +71,16 @@ const getClient = async (id, userId, role) => {
 };
 
 
-
 // CREATE
 const createClient = async (data) => {
 
-  const { email, name, firstName, userId } = data;
+  const { email, name, firstName, userId, role } = data;
+
+  if (role === "ADMIN") {
+    throw new Error(
+      "Un administrateur ne peut pas créer de client"
+    );
+  }
 
   if (!email || !name || !firstName || !userId) {
     throw new Error('Champs obligatoires manquants');
@@ -99,6 +104,13 @@ const createClient = async (data) => {
 // UPDATE (sécurisé user)
 const updateClient = async (id, data, userId, role) => {
 
+  // ADMIN : pas de modification métier
+  if (role === "ADMIN") {
+    throw new Error(
+      "Un administrateur ne peut pas modifier un client"
+    );
+  }
+  
   const client = await clientRepository.getClientById(id);
 
   if (!client) {
@@ -114,7 +126,6 @@ const updateClient = async (id, data, userId, role) => {
     throw new Error("Accès interdit");
   }
 
-
   // MANAGER : uniquement ses propres clients
   if (
     role === "MANAGER" &&
@@ -122,10 +133,6 @@ const updateClient = async (id, data, userId, role) => {
   ) {
     throw new Error("Accès interdit");
   }
-
-
-  // ADMIN : pas de modification métier
-
 
   if (data.email) {
 
@@ -140,7 +147,6 @@ const updateClient = async (id, data, userId, role) => {
     }
   }
 
-
   return await clientRepository.updateClient(
     id,
     data
@@ -150,6 +156,13 @@ const updateClient = async (id, data, userId, role) => {
 
 // DELETE (sécurisé user)
 const deleteClient = async (id, userId, role) => {
+
+  // ADMIN : pas de suppression métier
+  if (role === "ADMIN") {
+    throw new Error(
+      "Un administrateur ne peut pas supprimer un client"
+    );
+  }
 
   const client = await clientRepository.getClientById(id);
 
@@ -166,7 +179,6 @@ const deleteClient = async (id, userId, role) => {
     throw new Error("Accès interdit");
   }
 
-
   // MANAGER : uniquement ses propres clients
   if (
     role === "MANAGER" &&
@@ -174,10 +186,6 @@ const deleteClient = async (id, userId, role) => {
   ) {
     throw new Error("Accès interdit");
   }
-
-
-  // ADMIN : pas de suppression métier
-
 
   return await clientRepository.deleteClient(id);
 

@@ -1,15 +1,41 @@
 const express = require('express');
 const router = express.Router();
+
 const saleController = require('../controllers/saleController');
 const authMiddleware = require('../middleware/authMiddleware');
+const roleMiddleware = require('../middleware/roleMiddleware');
 
-// 🔐 PROTECTION TOTALE
+
 router.use(authMiddleware);
 
+
+// Lecture
 router.get('/', saleController.getAllSales);
 router.get('/:id', saleController.getSale);
-router.post('/', saleController.createSale);
-router.put('/:id', saleController.updateSale);
-router.delete('/:id', saleController.deleteSale);
+
+
+// Création
+router.post(
+  '/',
+  roleMiddleware("COMMERCIAL", "MANAGER"),
+  saleController.createSale
+);
+
+
+// Modification
+router.put(
+  '/:id',
+  roleMiddleware("COMMERCIAL", "MANAGER"),
+  saleController.updateSale
+);
+
+
+// Suppression
+router.delete(
+  '/:id',
+  roleMiddleware("COMMERCIAL", "MANAGER"),
+  saleController.deleteSale
+);
+
 
 module.exports = router;

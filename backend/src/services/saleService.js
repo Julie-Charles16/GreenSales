@@ -9,7 +9,13 @@ function calculateCommission(amount) {
 
 // CREATE
 async function createSale(data) {
-  const { amount, clientId, userId } = data;
+const { amount, clientId, userId, role } = data;
+
+  if (!["COMMERCIAL", "MANAGER"].includes(role)) {
+    throw new Error(
+      "Seul un commercial ou un manager peut créer une vente"
+    );
+  }
 
   if (!amount || amount <= 0) {
     throw new Error("Le montant doit être supérieur à 0");
@@ -41,14 +47,23 @@ async function createSale(data) {
 // UPDATE
 async function updateSale(id, data, userId, role) {
 
-  if (role !== "COMMERCIAL") {
-    throw new Error("Accès interdit");
+  if (role === "ADMIN") {
+    throw new Error(
+      "Un administrateur ne peut pas modifier une vente"
+    );
   }
 
-  const sale = await saleRepository.findById(id, userId);
+  const sale = await saleRepository.findById(id);
 
   if (!sale) {
     throw new Error("Vente introuvable");
+  }
+
+  // COMMERCIAL et MANAGER :
+  // uniquement leurs propres ventes
+
+  if (sale.userId !== userId) {
+    throw new Error("Accès interdit");
   }
 
   let updatedData = { ...data };
@@ -72,6 +87,7 @@ async function updateSale(id, data, userId, role) {
     userId
   );
 }
+
 // GET ALL
 async function getAllSales(userId, role) {
 
@@ -79,7 +95,6 @@ async function getAllSales(userId, role) {
   if (role === "ADMIN") {
     return await saleRepository.findAll();
   }
-
 
   // MANAGER
   if (role === "MANAGER") {
@@ -93,7 +108,6 @@ async function getAllSales(userId, role) {
       ...teamSales,
     ];
   }
-
 
   // COMMERCIAL
   return await saleRepository.findAll(userId);
@@ -133,11 +147,9 @@ async function getSaleById(id, userId, role) {
 
   }
 
-
   if (!sale) {
     throw new Error("Vente introuvable");
   }
-
 
   return sale;
 }
@@ -145,17 +157,26 @@ async function getSaleById(id, userId, role) {
 // DELETE
 async function deleteSale(id, userId, role) {
 
-  if (role !== "COMMERCIAL") {
-    throw new Error("Accès interdit");
+  if (role === "ADMIN") {
+    throw new Error(
+      "Un administrateur ne peut pas supprimer une vente"
+    );
   }
 
-  const sale = await saleRepository.findById(id, userId);
+  const sale = await saleRepository.findById(id);
 
   if (!sale) {
     throw new Error("Vente introuvable");
   }
 
-  return await saleRepository.remove(id, userId);
+  if (sale.userId !== userId) {
+    throw new Error("Accès interdit");
+  }
+
+  return await saleRepository.remove(
+    id,
+    userId
+  );
 }
 
 module.exports = {

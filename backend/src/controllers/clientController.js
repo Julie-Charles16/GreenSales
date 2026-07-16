@@ -56,6 +56,7 @@ const createClient = async (req, res) => {
       projectType,
       status,
       userId: req.user.id,
+      role: req.user.role,
     });
 
     return res.status(201).json(client);

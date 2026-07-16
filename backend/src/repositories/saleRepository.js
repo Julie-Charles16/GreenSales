@@ -6,14 +6,15 @@ async function create(data) {
 }
 
 // UPDATE (sécurisé user)
-async function update(id, data, userId = null) {
-  return await prisma.sale.updateMany({
+async function update(id, data, userId) {
+
+  return await prisma.sale.update({
     where: {
       id: parseInt(id),
-      ...(userId ? { userId } : {}),
     },
     data,
   });
+
 }
 
 // GET ALL (par user)
@@ -57,13 +58,14 @@ async function findById(id, userId = null) {
 
 
 // DELETE (sécurisé user)
-async function remove(id, userId = null) {
-  return await prisma.sale.deleteMany({
-    where: {
-      id: parseInt(id),
-      ...(userId ? { userId } : {}),
-    },
-  });
+async function remove(id) {
+
+ return await prisma.sale.delete({
+   where:{
+     id:parseInt(id)
+   }
+ });
+
 }
 
 module.exports = {

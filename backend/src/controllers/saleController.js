@@ -32,16 +32,20 @@ exports.getSale = async (req, res) => {
 };
 
 // CREATE
-exports.createSale = async (req, res) => {
+exports.createSale = async (req,res)=>{
   try {
     const sale = await saleService.createSale({
       ...req.body,
       userId: req.user.id,
+      role: req.user.role,
     });
 
     res.status(201).json(sale);
-  } catch (err) {
-    res.status(400).json({ error: 'Erreur création vente' });
+
+  } catch(err){
+    res.status(400).json({
+      error: err.message
+    });
   }
 };
 
@@ -56,8 +60,11 @@ exports.updateSale = async (req, res) => {
     );
 
     res.json(sale);
+
   } catch (err) {
-    res.status(400).json({ error: 'Erreur mise à jour' });
+    res.status(400).json({
+    error: err.message
+    });
   }
 };
 
@@ -71,7 +78,10 @@ exports.deleteSale = async (req, res) => {
     );
 
     res.json({ message: 'Vente supprimée' });
+
   } catch (err) {
-    res.status(400).json({ error: 'Erreur suppression' });
+    res.status(400).json({
+    error: err.message
+    });
   }
 };

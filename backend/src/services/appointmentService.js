@@ -3,8 +3,7 @@ const clientRepository = require('../repositories/clientRepository');
 
 // GET ALL (par user)
 const getAppointments = async (userId, role) => {
-  console.log("USER ID :", userId);
-  console.log("ROLE :", role);
+
   // ADMIN
   if (role === "ADMIN") {
     return await appointmentRepository.getAllAppointments();
@@ -34,17 +33,14 @@ const getAppointment = async (id, userId, role) => {
 
   const appointment = await appointmentRepository.getAppointmentById(id);
 
-
   if (!appointment) {
     throw new Error("Rendez-vous non trouvé");
   }
-
 
   // ADMIN : lecture uniquement
   if (role === "ADMIN") {
     return appointment;
   }
-
 
   // MANAGER : ses rendez-vous + ceux de son équipe
   if (role === "MANAGER") {
@@ -59,7 +55,6 @@ const getAppointment = async (id, userId, role) => {
     return appointment;
   }
 
-
   // COMMERCIAL : uniquement ses rendez-vous
   if (
     role === "COMMERCIAL" &&
@@ -67,7 +62,6 @@ const getAppointment = async (id, userId, role) => {
   ) {
     throw new Error("Accès interdit");
   }
-
 
   return appointment;
 };
@@ -126,12 +120,10 @@ const updateAppointment = async (id, data, userId, role) => {
     throw new Error("Rendez-vous introuvable");
   }
 
-
   // ADMIN : lecture uniquement
   if (role === "ADMIN") {
     throw new Error("Action interdite pour un administrateur");
   }
-
 
   // COMMERCIAL : uniquement ses rendez-vous
   if (
@@ -141,15 +133,13 @@ const updateAppointment = async (id, data, userId, role) => {
     throw new Error("Accès interdit");
   }
 
-
   // MANAGER : uniquement ses propres rendez-vous
   if (
     role === "MANAGER" &&
     appointment.userId !== userId
   ) {
-    throw new Error("Un manager ne peut pas modifier les rendez-vous de son équipe");
+    throw new Error("Accès interdit");
   }
-
 
   if (data.date) {
 
@@ -162,7 +152,6 @@ const updateAppointment = async (id, data, userId, role) => {
     data.date = appointmentDate;
   }
 
-
   return await appointmentRepository.updateAppointment(
     id,
     data
@@ -174,17 +163,14 @@ const deleteAppointment = async (id, userId, role) => {
 
   const appointment = await appointmentRepository.getAppointmentById(id);
 
-
   if (!appointment) {
     throw new Error("Rendez-vous introuvable");
   }
-
 
   // ADMIN : lecture uniquement
   if (role === "ADMIN") {
     throw new Error("Action interdite pour un administrateur");
   }
-
 
   // COMMERCIAL : uniquement ses rendez-vous
   if (
@@ -194,15 +180,13 @@ const deleteAppointment = async (id, userId, role) => {
     throw new Error("Accès interdit");
   }
 
-
   // MANAGER : uniquement ses propres rendez-vous
   if (
     role === "MANAGER" &&
     appointment.userId !== userId
   ) {
-    throw new Error("Un manager ne peut pas supprimer les rendez-vous de son équipe");
+    throw new Error("Accès interdit");
   }
-
 
   return await appointmentRepository.deleteAppointment(id);
 };
