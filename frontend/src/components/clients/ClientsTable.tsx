@@ -6,6 +6,9 @@ interface Props {
   onView: (client: Client) => void;
   onEdit: (client: Client) => void;
   onDelete: (client: Client) => void;
+
+  canEdit: (client: Client) => boolean;
+  canDelete: (client: Client) => boolean;
 }
 
 const ClientsTable: React.FC<Props> = ({
@@ -15,7 +18,13 @@ const ClientsTable: React.FC<Props> = ({
   onView,
   onEdit,
   onDelete,
+  canEdit,
+  canDelete,
 }) => {
+  const hasActions = clients.some(
+  (client) => canEdit(client) || canDelete(client)
+);
+
   return (
     <div className="card shadow-sm">
       <div className="card-body">
@@ -26,7 +35,7 @@ const ClientsTable: React.FC<Props> = ({
               <th>Email</th>
               <th>Ville</th>
               <th>Statut</th>
-              <th>Actions</th>
+              {hasActions && <th>Actions</th>}
             </tr>
           </thead>
 
@@ -68,30 +77,37 @@ const ClientsTable: React.FC<Props> = ({
                 </td>
 
                 {/* Actions */}
-                <td>
-                  <div className="d-flex gap-2">
+                {hasActions && (
+                  <td>
+                    <div className="d-flex gap-2">
 
-                    <button
-                      className="btn btn-sm btn-outline-primary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(client);
-                      }}
-                    >
-                      <i className="bi bi-pencil"></i>
-                    </button>
+                      {canEdit(client) && (
+                        <button
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(client);
+                          }}
+                        >
+                          <i className="bi bi-pencil"></i>
+                        </button>
+                      )}
 
-                    <button
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(client);
-                      }}
-                    >
-                      <i className="bi bi-trash"></i>
-                    </button>
-                  </div>
-                </td>
+                      {canDelete(client) && (
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(client);
+                          }}
+                        >
+                          <i className="bi bi-trash"></i>
+                        </button>
+                      )}
+
+                    </div>
+                  </td>
+                )}
 
               </tr>
             ))}

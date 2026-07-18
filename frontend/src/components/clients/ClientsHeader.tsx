@@ -2,10 +2,16 @@ interface Props {
   view: "table" | "cards";
   setView: (view: "table" | "cards") => void;
   onAdd: () => void;
+  canCreate: boolean;
 }
 
-const ClientsHeader: React.FC<Props> = ({ view, setView, onAdd }) => {
-  return (
+const ClientsHeader: React.FC<Props> = ({
+  view,
+  setView,
+  onAdd,
+  canCreate,
+}) => {
+    return (
     <div className="d-flex justify-content-between align-items-center mb-4">
       <div>
         <h2 className="fw-bold">Clients</h2>
@@ -30,9 +36,11 @@ const ClientsHeader: React.FC<Props> = ({ view, setView, onAdd }) => {
             Cartes
           </button>
         </div>
-        <button className="btn btn-primary" onClick={onAdd}>
-          <i className="bi bi-person-plus"></i>
-        </button>
+        {canCreate && (
+          <button className="btn btn-primary" onClick={onAdd}>
+            <i className="bi bi-person-plus"></i>
+          </button>
+        )}
       </div>
     </div>
   );

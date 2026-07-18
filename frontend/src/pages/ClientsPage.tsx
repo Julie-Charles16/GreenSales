@@ -3,6 +3,9 @@ import type { Client, ClientFormData } from "../types/client";
 import { getClients, createClient, updateClient, deleteClient } from "../services/clientService";
 import { Modal } from "bootstrap";
 
+import { useAuth } from "../context/auth/useAuth";
+import { canEditOwnData, canDeleteOwnData, canCreateBusinessData} from "../utils/permissions";
+
 import ClientsHeader from "../components/clients/ClientsHeader";
 import ClientsFilters from "../components/clients/ClientsFilters";
 import ClientsKPI from "../components/clients/ClientsKPI";
@@ -18,6 +21,7 @@ import { useToast } from "../context/toast/useToast";
 
 const ClientsPage: React.FC = () => {
 
+  const { user } = useAuth();
   // ==============================
   // 🔹 STATE - données principales
   // ==============================
@@ -207,6 +211,11 @@ const ClientsPage: React.FC = () => {
         view={view}
         setView={setView}
         onAdd={handleAdd}
+        canCreate={
+          user
+            ? canCreateBusinessData(user.role)
+            : false
+        }
       />
 
       {/* FILTRES */}
@@ -232,6 +241,26 @@ const ClientsPage: React.FC = () => {
         onView={handleViewDetail}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
+
+        canEdit={(client) =>
+          user
+            ? canEditOwnData(
+                user.role,
+                client.userId,
+                user.id
+              )
+            : false
+        }
+
+        canDelete={(client) =>
+          user
+            ? canDeleteOwnData(
+                user.role,
+                client.userId,
+                user.id
+              )
+            : false
+        }
       />
       )}
       
