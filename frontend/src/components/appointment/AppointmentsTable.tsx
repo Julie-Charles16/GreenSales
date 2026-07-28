@@ -12,6 +12,8 @@ interface Props {
   formatDate: (date: string) => string;
   onEdit: (appt: Appointment) => void;
   onDelete: (appt: Appointment) => void;
+  canEdit: (appt: Appointment) => boolean;
+  canDelete: (appt: Appointment) => boolean;
 }
 
 const AppointmentsTable: React.FC<Props> = ({
@@ -24,7 +26,10 @@ const AppointmentsTable: React.FC<Props> = ({
   formatDate,
   onEdit,
   onDelete,
+  canEdit,
+  canDelete,
 }) => {
+  const hasActions = appointments.some((appointment) => canEdit(appointment) || canDelete(appointment));
   return (
     <div className="card shadow-sm mt-4">
       <div className="card-body">
@@ -36,7 +41,7 @@ const AppointmentsTable: React.FC<Props> = ({
               <th>Adresse</th>
               {/* <th>Commentaire</th> */}
               <th>Statut</th>
-              <th>Actions</th>
+              {hasActions && <th>Actions</th>}
             </tr>
           </thead>
 
@@ -85,23 +90,23 @@ const AppointmentsTable: React.FC<Props> = ({
                 </td>
 
                 {/* Actions */}
-                <td>
+                {hasActions && <td>
                   <div className="d-flex gap-2">
-                    <button
+                    {canEdit(appt) && <button
                       className="btn btn-sm btn-outline-primary"
                       onClick={() => onEdit(appt)}
                     >
                     <i className="bi bi-pencil"></i>
-                    </button>
+                    </button>}
 
-                    <button
+                    {canDelete(appt) && <button
                       className="btn btn-sm btn-outline-danger"
                       onClick={() => onDelete(appt)}
                     >
                     <i className="bi bi-trash"></i>
-                    </button>
+                    </button>}
                   </div>
-                </td>
+                </td>}
               </tr>
             ))}
           </tbody>

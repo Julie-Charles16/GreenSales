@@ -8,6 +8,7 @@ interface Props {
   onDelete?: () => void;
   clients: Client[];
   initialData?: Appointment | null;
+  canDelete?: boolean;
 }
 
 const getInitialForm = (
@@ -25,6 +26,7 @@ const AppointmentForm: React.FC<Props> = ({
   onDelete,
   clients,
   initialData,
+  canDelete = false,
 }) => {
   const [error, setError] = useState<string | null>(null);
 
@@ -178,7 +180,7 @@ const AppointmentForm: React.FC<Props> = ({
             {isEdit ? "Modifier" : "Ajouter"}
           </button>
 
-          {isEdit && (
+          {isEdit && canDelete && (
             <button
               type="button"
               className="btn btn-outline-danger"

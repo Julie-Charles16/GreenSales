@@ -15,6 +15,8 @@ interface Props {
   getClientName: (id: number) => string;
   onEventClick: (appt: Appointment) => void;
   onDateClick: (date: string) => void;
+  canEdit: (appt: Appointment) => boolean;
+  canCreate: boolean;
 }
 
 type EventExtendedProps = {
@@ -29,6 +31,8 @@ const AppointmentCalendar: React.FC<Props> = ({
   getClientName,
   onEventClick,
   onDateClick,
+  canEdit,
+  canCreate,
 }) => {
   // 🔹 sécurisation HTML (anti injection)
   const safe = (text?: string) =>
@@ -83,12 +87,12 @@ const AppointmentCalendar: React.FC<Props> = ({
             const appt = appointments.find(
               (a) => a.id === Number(info.event.id)
             );
-            if (appt) onEventClick(appt);
+            if (appt && canEdit(appt)) onEventClick(appt);
           }}
 
           // 🔹 clic sur une date
           dateClick={(info) => {
-            onDateClick(info.dateStr);
+            if (canCreate) onDateClick(info.dateStr);
           }}
 
           // 🔥 TOOLTIP AU HOVER

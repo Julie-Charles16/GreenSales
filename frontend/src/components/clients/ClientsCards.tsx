@@ -7,14 +7,19 @@ interface Props {
   onView: (client: Client) => void;
   onEdit: (client: Client) => void;
   onDelete: (client: Client) => void;
+  canEdit: (client: Client) => boolean;
+  canDelete: (client: Client) => boolean;
 }
 
 const ClientsCards: React.FC<Props> = ({
   clients,
   getStatusColor,
   getStatusBorderColor,
+  onView,
   onEdit,
   onDelete,
+  canEdit,
+  canDelete,
 }) => {
   return (
     <div className="row g-3">
@@ -24,6 +29,12 @@ const ClientsCards: React.FC<Props> = ({
             className="card shadow-sm p-3 h-100"
             style={{
               borderLeft: `4px solid ${getStatusBorderColor(client.status)}`,
+            }}
+            role="button"
+            tabIndex={0}
+            onClick={() => onView(client)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") onView(client);
             }}
           >
 
@@ -63,7 +74,7 @@ const ClientsCards: React.FC<Props> = ({
                 </span>
 
                 <div className="d-flex gap-2">
-                  <button
+                  {canEdit(client) && <button
                     className="btn btn-sm btn-outline-primary"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -71,9 +82,9 @@ const ClientsCards: React.FC<Props> = ({
                     }}
                   >
                     <i className="bi bi-pencil"></i>
-                  </button>
+                  </button>}
 
-                  <button
+                  {canDelete(client) && <button
                     className="btn btn-sm btn-outline-danger"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -81,7 +92,7 @@ const ClientsCards: React.FC<Props> = ({
                     }}
                   >
                     <i className="bi bi-trash"></i>
-                  </button>
+                  </button>}
                 </div>
               </div>
           </div>

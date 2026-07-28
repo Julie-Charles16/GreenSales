@@ -1,80 +1,152 @@
 import React, { useEffect, useState } from "react";
 
+import type { User } from "../types/user";
 import type { Client } from "../types/client";
 import type { Sale } from "../types/sale";
 import type { Appointment } from "../types/appointment";
 
-import DashboardKPI from "../components/dashboard/DashboardKPI";
 
 import { getClients } from "../services/clientService";
 import { getSales } from "../services/saleService";
 import { getAppointments } from "../services/appointmentService";
+import { getUsers } from "../services/adminService";
 
-import DashboardHighlights from "../components/dashboard/DashboardHighLights";
-import AppointmentsChart from "../components/dashboard/charts/AppointmentsChart";
-import SalesPipelineChart from "../components/dashboard/charts/SalesPipelineChart";
+import { useAuth } from "../context/auth/useAuth";
+
+import AdminDashboard from "../components/dashboard/AdminDashboard";
+import ManagerDashboard from "../components/dashboard/ManagerDashboard";
+import CommercialDashboard from "../components/dashboard/CommercialDashboard";
 
 
 const DashboardPage: React.FC = () => {
+
+  const { user } = useAuth();
+
   const [clients, setClients] = useState<Client[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+
 
   useEffect(() => {
+
+    if (!user) return;
+
+
     const loadData = async () => {
+
       try {
-        const [clientsData, salesData, appointmentsData] = await Promise.all([
+
+        const [
+          clientsData,
+          salesData,
+          appointmentsData,
+          usersData,
+        ] = await Promise.all([
+
           getClients(),
+
           getSales(),
-          getAppointments()
+
+          getAppointments(),
+
+          user.role === "ADMIN"
+            ? getUsers()
+            : Promise.resolve([])
+
         ]);
 
+
         setClients(clientsData);
+
         setSales(salesData);
+
         setAppointments(appointmentsData);
+
+        setUsers(usersData);
+
+
       } catch (error) {
-        console.error("Erreur chargement dashboard :", error);
+
+        console.error(
+          "Erreur chargement dashboard :",
+          error
+        );
+
       }
+
     };
 
+
     loadData();
-  }, []);
+
+
+  }, [user]);
+
 
   return (
+
     <div className="container mt-4">
-      <h1 className="mb-4">Tableau de bord</h1>
 
-      <DashboardKPI
-        clients={clients}
-        sales={sales}
-        appointments={appointments}
-      />
 
-      <div className="mt-4">
-        <DashboardHighlights
-            clients={clients}
-            sales={sales}
-            appointments={appointments}
+      {user?.role === "ADMIN" && (
+
+        <AdminDashboard
+
+          clients={clients}
+
+          sales={sales}
+
+          appointments={appointments}
+
+          users={users}
+
         />
-      </div>
 
-      <div className="row g-3">
-        {/* RDV CHART */}
-        <div className="col-md-6">
-          <div className="card shadow-sm p-3" style={{ height: 350 }}>
-            <AppointmentsChart appointments={appointments} />
-          </div>
-        </div>
+      )}
 
-        {/* SALES PIPELINE CHART */}
-        <div className="col-md-6">
-          <div className="card shadow-sm p-3" style={{ height: 350 }}>
-            <SalesPipelineChart sales={sales} />
-          </div>
-        </div>
-      </div>
+
+
+      {user?.role === "MANAGER" && (
+
+        <ManagerDashboard
+
+          clients={clients}
+
+          sales={sales}
+
+          appointments={appointments}
+
+          currentUserId={user.id}
+
+        />
+
+      )}
+
+
+
+      {user?.role === "COMMERCIAL" && (
+
+        <CommercialDashboard
+
+          clients={clients}
+
+          sales={sales}
+
+          appointments={appointments}
+
+          currentUserId={user.id}
+
+        />
+
+      )}
+
+
     </div>
+
   );
+
 };
+
 
 export default DashboardPage;

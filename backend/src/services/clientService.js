@@ -72,6 +72,33 @@ const getClient = async (id, userId, role) => {
 
 
 // CREATE
+// const createClient = async (data) => {
+
+//   const { email, name, firstName, userId, role } = data;
+
+//   if (role === "ADMIN") {
+//     throw new Error(
+//       "Un administrateur ne peut pas créer de client"
+//     );
+//   }
+
+//   if (!email || !name || !firstName || !userId) {
+//     throw new Error('Champs obligatoires manquants');
+//   }
+
+//   const existing = await clientRepository.getClientByEmail(email);
+
+//   if (existing) {
+//     throw new Error('Email déjà utilisé');
+//   }
+
+//   return await clientRepository.createClient({
+//     ...data,
+//     status: data.status || "PROSPECT",
+//   });
+
+// };
+
 const createClient = async (data) => {
 
   const { email, name, firstName, userId, role } = data;
@@ -92,9 +119,13 @@ const createClient = async (data) => {
     throw new Error('Email déjà utilisé');
   }
 
+  const clientData = { ...data };
+
+  delete clientData.role;
+
   return await clientRepository.createClient({
-    ...data,
-    status: data.status || "PROSPECT",
+    ...clientData,
+    status: clientData.status || "PROSPECT",
   });
 
 };

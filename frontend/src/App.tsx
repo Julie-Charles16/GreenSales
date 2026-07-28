@@ -12,6 +12,8 @@ import ClientsPage from "./pages/ClientsPage";
 import SalesPage from "./pages/SalesPage";
 import AppointmentsPage from "./pages/AppointmentsPage";
 import SettingsPage from "./pages/SettingsPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
+import AdminRoute from "./components/AdminRoute";
 
 const App = () => {
   return (
@@ -24,6 +26,9 @@ const App = () => {
           <Route path="/sales" element={<SalesPage />} />
           <Route path="/appointments" element={<AppointmentsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route element={<AdminRoute />}>
+            <Route path="/users" element={<AdminUsersPage />} />
+          </Route>
         </Route>
       </Route>
 

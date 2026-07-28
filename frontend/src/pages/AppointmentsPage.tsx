@@ -12,6 +12,8 @@ import { getClients } from "../services/clientService";
 import type { Appointment, AppointmentFormData } from "../types/appointment";
 import type { Client } from "../types/client";
 import { useToast } from "../context/toast/useToast";
+import { useAuth } from "../context/auth/useAuth";
+import { canCreateBusinessData, canDeleteOwnData, canEditOwnData } from "../utils/permissions";
 
 import AppointmentCalendar from "../components/appointment/AppointmentCalendar";
 import AppointmentsTable from "../components/appointment/AppointmentsTable";
@@ -25,6 +27,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const AppointmentsPage: React.FC = () => {
+  const { user } = useAuth();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
 
@@ -168,11 +171,13 @@ const AppointmentsPage: React.FC = () => {
 
   // actions calendrier
   const handleEventClick = (appt: Appointment) => {
+    if (!user || !canEditOwnData(user.role, appt.userId, user.id)) return;
     setEditing(appt);
     formModal?.show();
   };
 
   const handleDateClick = (date: string) => {
+    if (!user || !canCreateBusinessData(user.role)) return;
     const formattedDate = new Date(date);
     formattedDate.setHours(9, 0, 0, 0);
 
@@ -182,7 +187,7 @@ const AppointmentsPage: React.FC = () => {
       status: "PLANIFIE",
       comment: "",
       clientId: 0,
-      userId: 1,
+      userId: user.id,
     });
 
     formModal?.show();
@@ -190,13 +195,16 @@ const AppointmentsPage: React.FC = () => {
 
   // 🔹 submit
   const handleSubmit = async (data: AppointmentFormData) => {
+    if (!user) return;
     if (editing && editing.id !== 0) {
+      if (!canEditOwnData(user.role, editing.userId, user.id)) return;
       await updateAppointment(editing.id, data);
       showToast({
         message: "RDV modifié !",
         variant: "info",
       });  
     } else {
+      if (!canCreateBusinessData(user.role)) return;
       await createAppointment(data);
       showToast({
         message: "RDV ajouté !",
@@ -211,6 +219,7 @@ const AppointmentsPage: React.FC = () => {
   // 🔹 delete
   const handleDeleteClick = () => {
     if (!editing) return;
+    if (!user || !canDeleteOwnData(user.role, editing.userId, user.id)) return;
     setToDelete(editing);
     formModal?.hide();
     deleteModal?.show();
@@ -218,6 +227,7 @@ const AppointmentsPage: React.FC = () => {
 
   const confirmDelete = async () => {
     if (!toDelete) return;
+    if (!user || !canDeleteOwnData(user.role, toDelete.userId, user.id)) return;
 
     await deleteAppointment(toDelete.id);
       showToast({
@@ -237,6 +247,7 @@ const AppointmentsPage: React.FC = () => {
         onAdd={() => {
           handleDateClick(new Date().toISOString());
         }}
+        canCreate={user ? canCreateBusinessData(user.role) : false}
       />
       
       <AppointmentsFilters
@@ -258,6 +269,8 @@ const AppointmentsPage: React.FC = () => {
         getClientName={getClientName}
         onEventClick={handleEventClick}
         onDateClick={handleDateClick}
+        canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
+        canCreate={user ? canCreateBusinessData(user.role) : false}
       />
       )}
 
@@ -273,13 +286,15 @@ const AppointmentsPage: React.FC = () => {
         getStatusBorderColor={getStatusBorderColor}
         formatDate={formatDate}
         onEdit={(appt) => {
-          setEditing(appt);
-          formModal?.show();
+          handleEventClick(appt);
         }}
         onDelete={(appt) => {
+          if (!user || !canDeleteOwnData(user.role, appt.userId, user.id)) return;
           setToDelete(appt);
           deleteModal?.show();
         }}
+        canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
+        canDelete={(appointment) => user ? canDeleteOwnData(user.role, appointment.userId, user.id) : false}
       />
       )}
 
@@ -295,13 +310,15 @@ const AppointmentsPage: React.FC = () => {
         getStatusBorderColor={getStatusBorderColor}
         formatDate={formatDate}
         onEdit={(appt) => {
-          setEditing(appt);
-          formModal?.show();
+          handleEventClick(appt);
         }}
         onDelete={(appt) => {
+          if (!user || !canDeleteOwnData(user.role, appt.userId, user.id)) return;
           setToDelete(appt);
           deleteModal?.show();
         }}
+        canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
+        canDelete={(appointment) => user ? canDeleteOwnData(user.role, appointment.userId, user.id) : false}
       />
       )}
 
@@ -315,6 +332,7 @@ const AppointmentsPage: React.FC = () => {
               onSubmit={handleSubmit}
               onCancel={() => formModal?.hide()}
               onDelete={handleDeleteClick}
+              canDelete={user && editing ? canDeleteOwnData(user.role, editing.userId, user.id) : false}
               clients={clients}
             />
           </div>

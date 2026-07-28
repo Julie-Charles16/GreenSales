@@ -7,6 +7,8 @@ type Props = {
   clients: Client[];
   onEdit: (sale: Sale) => void;
   onDelete: (sale: Sale) => void;
+  canEdit: (sale: Sale) => boolean;
+  canDelete: (sale: Sale) => boolean;
 };
 
 const SalesPipeline: React.FC<Props> = ({
@@ -14,6 +16,8 @@ const SalesPipeline: React.FC<Props> = ({
   clients,
   onEdit,
   onDelete,
+  canEdit,
+  canDelete,
 }) => {
   const statuses = Array.from(new Set(sales.map((s) => s.status)));
 
@@ -132,19 +136,19 @@ const getCommissionByStatus = (status: string) => {
 
                   {/* ACTIONS */}
                   <div className="d-flex justify-content-end gap-2 mt-3">
-                    <button
+                    {canEdit(sale) && <button
                       className="btn btn-sm btn-outline-primary"
                       onClick={() => onEdit(sale)}
                     >
                       <i className="bi bi-pencil"></i>
-                    </button>
+                    </button>}
 
-                    <button
+                    {canDelete(sale) && <button
                       className="btn btn-sm btn-outline-danger"
                       onClick={() => onDelete(sale)}
                     >
                       <i className="bi bi-trash"></i>
-                    </button>
+                    </button>}
                   </div>
                 </div>
               ))}

@@ -2,9 +2,10 @@ interface Props {
   view: "calendar" | "list" | "cards";
   setView: (view: "calendar" | "list" | "cards") => void;
   onAdd: () => void;
+  canCreate: boolean;
 }
 
-const AppointmentsHeader: React.FC<Props> = ({ view, setView, onAdd }) => {
+const AppointmentsHeader: React.FC<Props> = ({ view, setView, onAdd, canCreate }) => {
   return (
     <div className="d-flex justify-content-between align-items-center mb-4">
       <div>
@@ -37,9 +38,9 @@ const AppointmentsHeader: React.FC<Props> = ({ view, setView, onAdd }) => {
             Cartes
           </button>
         </div>
-        <button className="btn btn-primary" onClick={onAdd}>
+        {canCreate && <button className="btn btn-primary" onClick={onAdd}>
           <i className="bi bi-calendar-plus"></i>
-          </button>
+          </button>}
       </div>
     </div>
   );

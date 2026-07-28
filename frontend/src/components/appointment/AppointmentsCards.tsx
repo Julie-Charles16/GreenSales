@@ -12,6 +12,8 @@ interface Props {
   formatDate: (date: string) => string;
   onEdit: (appt: Appointment) => void;
   onDelete: (appt: Appointment) => void;
+  canEdit: (appt: Appointment) => boolean;
+  canDelete: (appt: Appointment) => boolean;
 }
 
 const AppointmentsCards: React.FC<Props> = ({
@@ -24,6 +26,8 @@ const AppointmentsCards: React.FC<Props> = ({
   formatDate,
   onEdit,
   onDelete,
+  canEdit,
+  canDelete,
 }) => {
   return (
     <div className="row mt-4">
@@ -72,7 +76,7 @@ const AppointmentsCards: React.FC<Props> = ({
 
                 {/* ACTIONS */}
                 <div className="d-flex gap-2">
-                  <button
+                  {canEdit(appt) && <button
                     className="btn btn-sm btn-outline-primary"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -80,9 +84,9 @@ const AppointmentsCards: React.FC<Props> = ({
                     }}
                   >
                   <i className="bi bi-pencil"></i>
-                  </button>
+                  </button>}
 
-                  <button
+                  {canDelete(appt) && <button
                     className="btn btn-sm btn-outline-danger"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -90,7 +94,7 @@ const AppointmentsCards: React.FC<Props> = ({
                     }}
                   >
                   <i className="bi bi-trash"></i>
-                  </button>
+                  </button>}
                 </div>
 
               </div>

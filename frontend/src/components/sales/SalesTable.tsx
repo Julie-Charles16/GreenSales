@@ -11,6 +11,8 @@ interface Props {
     formatDate: (date: string) => string;
     onEdit: (sale: Sale) => void;
     onDelete: (sale: Sale) => void;
+    canEdit: (sale: Sale) => boolean;
+    canDelete: (sale: Sale) => boolean;
 }
 
 const SalesTable: React.FC<Props> = ({
@@ -21,7 +23,10 @@ const SalesTable: React.FC<Props> = ({
     formatDate,
     onEdit,
     onDelete,
+    canEdit,
+    canDelete,
 }) => {
+    const hasActions = filteredSales.some((sale) => canEdit(sale) || canDelete(sale));
     return (
         <div className="card shadow-sm">
         <div className="card-body">
@@ -33,7 +38,7 @@ const SalesTable: React.FC<Props> = ({
                 <th>Commission</th>
                 <th>Signé le</th>
                 <th >Statut</th>
-                <th>Actions</th>
+                {hasActions && <th>Actions</th>}
               </tr>
             </thead>
 
@@ -81,22 +86,22 @@ const SalesTable: React.FC<Props> = ({
                     </span>
                   </td>
 
-                  <td>
+                  {hasActions && <td>
                     <div className="d-flex gap-2 mt-2">
-                      <button
+                      {canEdit(sale) && <button
                         className="btn btn-sm btn-outline-primary"
                         onClick={() => onEdit(sale)}
                       >
                         <i className="bi bi-pencil"></i>
-                      </button>
-                      <button
+                      </button>}
+                      {canDelete(sale) && <button
                         className="btn btn-sm btn-outline-danger"
                         onClick={() => onDelete(sale)}
                       >
                         <i className="bi bi-trash"></i>
-                      </button>
+                      </button>}
                     </div>
-                  </td>
+                  </td>}
                 </tr>
               ))}
             </tbody>

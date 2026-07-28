@@ -12,6 +12,8 @@ import type { Sale, SaleFormData } from "../types/sale";
 import type { Client } from "../types/client";
 
 import { useToast } from "../context/toast/useToast";
+import { useAuth } from "../context/auth/useAuth";
+import { canCreateBusinessData, canDeleteOwnData, canEditOwnData } from "../utils/permissions";
 
 import SalesHeader from "../components/sales/SalesHeader";
 import SalesFilters from "../components/sales/SalesFilters";
@@ -26,6 +28,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const SalesPage: React.FC = () => {
+  const { user } = useAuth();
 
   // ==============================
   // 🔹 STATE - données principales
@@ -186,23 +189,28 @@ const SalesPage: React.FC = () => {
   // ==============================
 
   const handleAdd = () => {
+    if (!user || !canCreateBusinessData(user.role)) return;
     setEditingSale(null);
     formModal?.show();
   };
 
   const handleEdit = (sale: Sale) => {
+    if (!user || !canEditOwnData(user.role, sale.userId, user.id)) return;
     setEditingSale(sale);
     formModal?.show();
   };
 
   const handleSubmit = async (data: SaleFormData) => {
+    if (!user) return;
     if (editingSale) {
+      if (!canEditOwnData(user.role, editingSale.userId, user.id)) return;
       await updateSale(editingSale.id, data);
       showToast({
         message: "Vente modifiée !",
         variant: "info",
       }); 
     } else {
+      if (!canCreateBusinessData(user.role)) return;
       await createSale(data);
       showToast({
         message: "Vente ajoutée !",
@@ -219,12 +227,14 @@ const SalesPage: React.FC = () => {
   // ==============================
 
   const handleDeleteClick = (sale: Sale) => {
+    if (!user || !canDeleteOwnData(user.role, sale.userId, user.id)) return;
     setSaleToDelete(sale);
     deleteModal?.show();
   };
 
   const confirmDelete = async () => {
     if (!saleToDelete) return;
+    if (!user || !canDeleteOwnData(user.role, saleToDelete.userId, user.id)) return;
 
     await deleteSale(saleToDelete.id);
     showToast({
@@ -244,6 +254,7 @@ const SalesPage: React.FC = () => {
         view={view}
         setView={setView}
         onAdd={handleAdd}
+        canCreate={user ? canCreateBusinessData(user.role) : false}
       />
 
       {/* FILTRES */}
@@ -266,6 +277,8 @@ const SalesPage: React.FC = () => {
         clients={clients}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
+        canEdit={(sale) => user ? canEditOwnData(user.role, sale.userId, user.id) : false}
+        canDelete={(sale) => user ? canDeleteOwnData(user.role, sale.userId, user.id) : false}
       />
       )}
       {/* Tableau */}
@@ -280,6 +293,8 @@ const SalesPage: React.FC = () => {
         formatDate={formatDate}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
+        canEdit={(sale) => user ? canEditOwnData(user.role, sale.userId, user.id) : false}
+        canDelete={(sale) => user ? canDeleteOwnData(user.role, sale.userId, user.id) : false}
       />
       )}
 

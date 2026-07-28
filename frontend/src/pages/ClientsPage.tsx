@@ -141,23 +141,28 @@ const ClientsPage: React.FC = () => {
   // ==============================
 
   const handleAdd = () => {
+    if (!user || !canCreateBusinessData(user.role)) return;
     setEditingClient(null);
     formModal?.show();
   };
 
   const handleEdit = (client: Client) => {
+    if (!user || !canEditOwnData(user.role, client.userId, user.id)) return;
     setEditingClient(client);
     formModal?.show();
   };
 
   const handleSubmit = async (data: ClientFormData) => {
+    if (!user) return;
     if (editingClient) {
+      if (!canEditOwnData(user.role, editingClient.userId, user.id)) return;
       await updateClient(editingClient.id, data);
       showToast({
         message: "Client modifié !",
         variant: "info",
       });  
-      } else {
+    } else {
+      if (!canCreateBusinessData(user.role)) return;
       await createClient(data);
       showToast({
         message: "Client ajouté !",
@@ -185,12 +190,14 @@ const ClientsPage: React.FC = () => {
   // 🔹 ACTIONS - suppression
   // ==============================
   const handleDeleteClick = (client: Client) => {
+    if (!user || !canDeleteOwnData(user.role, client.userId, user.id)) return;
     setClientToDelete(client);
     deleteModal?.show();
   };
 
   const confirmDelete = async () => {
     if (!clientToDelete) return;
+    if (!user || !canDeleteOwnData(user.role, clientToDelete.userId, user.id)) return;
 
     await deleteClient(clientToDelete.id);
     showToast({
@@ -273,6 +280,8 @@ const ClientsPage: React.FC = () => {
         onView={handleViewDetail}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
+        canEdit={(client) => user ? canEditOwnData(user.role, client.userId, user.id) : false}
+        canDelete={(client) => user ? canDeleteOwnData(user.role, client.userId, user.id) : false}
       />
       )}
 

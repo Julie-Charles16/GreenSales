@@ -99,7 +99,7 @@ const DashboardHighlights: React.FC<Props> = ({
 
       {/* ================= RDV DU JOUR ================= */}
       <div className="col-md-4">
-        <div className="card p-3 shadow-sm h-100">
+        <div className="card p-2 shadow-sm h-100">
 
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h6 className="mb-0 d-flex align-items-center">

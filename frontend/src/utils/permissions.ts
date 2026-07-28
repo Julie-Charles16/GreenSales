@@ -75,3 +75,6 @@ export const canCreateBusinessData = (
 ): boolean => {
   return role !== "ADMIN";
 };
+
+/** L'administration des comptes est réservée à l'administrateur. */
+export const canManageUsers = (role: Role): boolean => role === "ADMIN";

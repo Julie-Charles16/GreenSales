@@ -2,9 +2,10 @@ interface Props {
   view: "table" | "pipeline";
   setView: (view: "table" | "pipeline") => void;
   onAdd: () => void;
+  canCreate: boolean;
 }
 
-const SalesHeader: React.FC<Props> = ({ view, setView, onAdd }) => {
+const SalesHeader: React.FC<Props> = ({ view, setView, onAdd, canCreate }) => {
     return (
         <div className="d-flex justify-content-between align-items-center mb-4">
       <div>
@@ -30,9 +31,9 @@ const SalesHeader: React.FC<Props> = ({ view, setView, onAdd }) => {
             Pipeline
           </button>
         </div>
-        <button className="btn btn-primary" onClick={onAdd}>
+        {canCreate && <button className="btn btn-primary" onClick={onAdd}>
           <i className="bi bi-cart-plus"></i>
-          </button>
+          </button>}
       </div>
     </div>
     );

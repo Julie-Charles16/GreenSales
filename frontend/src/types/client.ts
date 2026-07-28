@@ -13,4 +13,5 @@ export interface Client {
   createdAt?: string;
 }
 
-export type ClientFormData = Omit<Client, "id">;
+/** Le propriétaire et la date sont définis par le backend authentifié. */
+export type ClientFormData = Omit<Client, "id" | "userId" | "createdAt">;

@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth/useAuth";
+import { canManageUsers } from "../utils/permissions";
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
@@ -48,6 +49,14 @@ const Sidebar = () => {
         </li>
 
         <li>
+        {user && canManageUsers(user.role) && <li>
+          <NavLink to="/users" className={linkClass}>
+            <i className="bi bi-person-gear"></i>
+            Utilisateurs
+          </NavLink>
+        </li>}
+        
+        <li>
           <NavLink to="/clients" className={linkClass}>
             <i className="bi bi-people"></i>
             Clients
@@ -68,12 +77,13 @@ const Sidebar = () => {
           </NavLink>
         </li>
 
-        <li>
+
           <NavLink to="/settings" className={linkClass}>
             <i className="bi bi-gear"></i>
             Paramètres
           </NavLink>
         </li>
+
 
       </ul>
 

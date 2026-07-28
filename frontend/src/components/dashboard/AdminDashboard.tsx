@@ -1,0 +1,144 @@
+import { Link } from "react-router-dom";
+import type { Client } from "../../types/client";
+import type { Sale } from "../../types/sale";
+import type { Appointment } from "../../types/appointment";
+import type { User } from "../../types/user";
+
+import MetricCard from "./common/MetricCard";
+import UserRoleChart from "./charts/admin/UserRoleChart";
+import ActivityOverviewChart from "./charts/admin/ActivityOverviewChart";
+
+type Props = {
+  clients: Client[];
+  sales: Sale[];
+  appointments: Appointment[];
+ users: User[];};
+
+const formatMoney = (amount: number) =>
+  `${amount.toLocaleString("fr-FR")} €`;
+
+// const Metric = ({
+//   icon,
+//   label,
+//   value,
+//   color = "primary",
+// }: {
+//   icon: string;
+//   label: string;
+//   value: string | number;
+//   color?: string;
+// }) => (
+//   <div className="col-md-3">
+//     <div className="card shadow-sm h-100 border-0">
+//       <div className="card-body">
+//         <div className={`text-${color} mb-2`}>
+//           <i className={`bi ${icon} fs-4`} />
+//         </div>
+
+//         <small className="text-muted d-block">{label}</small>
+
+//         <div className="fs-4 fw-bold">{value}</div>
+//       </div>
+//     </div>
+//   </div>
+// );
+
+const AdminDashboard = ({
+  clients,
+  sales,
+  appointments,
+  users,
+}: Props) => {
+  const today = new Date().toISOString().slice(0, 10);
+
+  const todayAppointments = appointments.filter(
+    (a) => a.date?.slice(0, 10) === today
+  ).length;
+
+  return (
+    <>
+      <div className="d-flex justify-content-between align-items-start mb-4">
+
+        <div>
+          <h1>Administration</h1>
+
+          <p className="text-muted">
+            Vue globale de la plateforme GreenSales.
+          </p>
+        </div>
+
+        <Link
+          to="/users"
+          className="btn btn-dark"
+        >
+          <i className="bi bi-people-fill me-2"></i>
+
+          Gérer les utilisateurs
+        </Link>
+
+      </div>
+
+      <div className="row g-3 mb-4">
+
+        <MetricCard
+          icon="bi-people"
+          label="Utilisateurs"
+          value={users.length}
+          color="dark"
+        />
+
+        <MetricCard
+          icon="bi-person-vcard"
+          label="Clients"
+          value={clients.length}
+          color="info"
+        />
+
+        <MetricCard
+          icon="bi-cash-stack"
+          label="CA global"
+          value={formatMoney(
+            sales.reduce((sum, sale) => sum + sale.amount, 0)
+          )}
+          color="success"
+        />
+
+        <MetricCard
+          icon="bi-calendar-event"
+          label="RDV aujourd'hui"
+          value={todayAppointments}
+          color="warning"
+        />
+
+      </div>
+
+      <div className="row g-3 mt-2">
+
+        <div className="col-md-6">
+          <div
+            className="card shadow-sm p-3"
+            style={{ height: "330px" }}
+          >
+            <UserRoleChart users={users} />
+          </div>
+        </div>
+
+        <div className="col-md-6">
+          <div
+            className="card shadow-sm p-3"
+            style={{ height: "330px" }}
+          >
+            <ActivityOverviewChart
+              clientsCount={clients.length}
+              appointmentsCount={appointments.length}
+              salesCount={sales.length}
+            />
+          </div>
+        </div>
+      </div>
+
+    </>
+  );
+};
+
+export default AdminDashboard;
