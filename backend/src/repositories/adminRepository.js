@@ -2,12 +2,24 @@ const prisma = require("../config/db");
 
 const getAllUsers = () => {
   return prisma.user.findMany({
+    orderBy: {
+      pseudo: "asc",
+    },
     select: {
       id: true,
       pseudo: true,
       email: true,
       role: true,
       createdAt: true,
+
+      managerId: true,
+
+      manager: {
+        select: {
+          id: true,
+          pseudo: true,
+        },
+      },
     },
   });
 };
@@ -47,6 +59,12 @@ const updateUserManager = (id, managerId) => {
       email: true,
       role: true,
       managerId: true,
+      manager: {
+        select: {
+          id: true,
+          pseudo: true,
+        },
+      },
     },
   });
 };

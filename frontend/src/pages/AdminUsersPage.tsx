@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/auth/useAuth";
 import { useToast } from "../context/toast/useToast";
-import { deleteManagedUser, getUsers, updateManagedUserRole } from "../services/adminService";
+import { deleteManagedUser, getUsers, updateManagedUserRole, updateManagedUserManager } from "../services/adminService";
 import type { AdminUser, Role } from "../types/user";
 
 const roles: Role[] = ["COMMERCIAL", "MANAGER", "ADMIN"];
@@ -19,6 +19,9 @@ const AdminUsersPage = () => {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const managers = users.filter(
+  (user) => user.role === "MANAGER"
+);
 
   const loadUsers = async () => {
     try {
@@ -54,6 +57,41 @@ const AdminUsersPage = () => {
     }
   };
 
+  const changeManager = async (
+  managedUser: AdminUser,
+  managerId: number | null
+) => {
+  try {
+    setUpdatingId(managedUser.id);
+
+    const updated = await updateManagedUserManager(
+      managedUser.id,
+      managerId
+    );
+
+    setUsers((previous) =>
+      previous.map((item) =>
+        item.id === updated.id
+          ? { ...item, ...updated }
+          : item
+      )
+    );
+
+    showToast({
+      message: "Manager modifié.",
+      variant: "success",
+    });
+
+  } catch {
+    showToast({
+      message: "La modification du manager a échoué.",
+      variant: "danger",
+    });
+  } finally {
+    setUpdatingId(null);
+  }
+};
+
   const removeUser = async (managedUser: AdminUser) => {
     if (!window.confirm(`Supprimer définitivement le compte de ${managedUser.pseudo} ?`)) return;
 
@@ -76,24 +114,38 @@ const AdminUsersPage = () => {
     <div className="container mt-4">
       <div className="mb-4">
         <h2 className="fw-bold">Utilisateurs</h2>
-        <small className="text-muted">Gérez les rôles et les comptes de la plateforme.</small>
+        <small className="text-muted">
+          Gérez les comptes, les rôles et l'organisation des équipes commerciales.
+        </small>
       </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="card shadow-sm">
         <div className="card-body p-0">
-          {loading ? <div className="p-4 text-muted">Chargement des utilisateurs…</div> : (
+          {loading ? (
+            <div className="p-4 text-muted">
+              Chargement des utilisateurs…
+            </div>
+          ) : (
             <div className="table-responsive">
               <table className="table table-hover align-middle mb-0">
                 <thead>
                   <tr>
                     <th className="ps-3">Utilisateur</th>
                     <th>Email</th>
-                    <th>Rôle</th>
-                    <th className="text-end pe-3">Actions</th>
+                    <th style={{ minWidth: "170px" }}>
+                      Rôle
+                    </th>
+                    <th style={{ minWidth: "200px" }}>
+                      Manager
+                    </th>
+                    <th className="text-end pe-3">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {users.map((managedUser) => {
                     const isCurrentUser = managedUser.id === currentUser?.id;
@@ -103,20 +155,74 @@ const AdminUsersPage = () => {
                       <tr key={managedUser.id}>
                         <td className="ps-3 fw-semibold">
                           {managedUser.pseudo}
-                          {isCurrentUser && <span className="badge text-bg-secondary ms-2">Vous</span>}
+                          {isCurrentUser && (
+                            <span className="badge text-bg-secondary ms-2">
+                              Vous
+                            </span>
+                          )}
                         </td>
-                        <td>{managedUser.email}</td>
+
                         <td>
+                          {managedUser.email}
+                        </td>
+
+                        <td className="pe-4">
                           <select
                             className="form-select form-select-sm"
                             value={managedUser.role}
                             disabled={isCurrentUser || isUpdating}
                             aria-label={`Rôle de ${managedUser.pseudo}`}
-                            onChange={(event) => void changeRole(managedUser, event.target.value as Role)}
+                            onChange={(event) =>
+                              void changeRole(
+                                managedUser,
+                                event.target.value as Role
+                              )
+                            }
                           >
-                            {roles.map((role) => <option key={role} value={role}>{roleLabel[role]}</option>)}
+                            {roles.map((role) => (
+                              <option key={role} value={role}>
+                                {roleLabel[role]}
+                              </option>
+                            ))}
                           </select>
                         </td>
+
+                        <td className="ps-3 pe-4">
+                          {managedUser.role === "COMMERCIAL" ? (
+                            <select
+                              className="form-select form-select-sm"
+                              value={managedUser.managerId ?? ""}
+                              disabled={isUpdating}
+                              aria-label={`Manager de ${managedUser.pseudo}`}
+                              onChange={(event) =>
+                                void changeManager(
+                                  managedUser,
+                                  event.target.value === ""
+                                    ? null
+                                    : Number(event.target.value)
+                                )
+                              }
+                            >
+                              <option value="">
+                                Aucun manager
+                              </option>
+
+                              {managers.map((manager) => (
+                                <option
+                                  key={manager.id}
+                                  value={manager.id}
+                                >
+                                  {manager.pseudo}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span className="text-muted">
+                              —
+                            </span>
+                          )}
+                        </td>
+
                         <td className="text-end pe-3">
                           <button
                             className="btn btn-sm btn-outline-danger"
@@ -130,7 +236,17 @@ const AdminUsersPage = () => {
                       </tr>
                     );
                   })}
-                  {users.length === 0 && <tr><td colSpan={4} className="text-center text-muted p-4">Aucun utilisateur.</td></tr>}
+
+                  {users.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="text-center text-muted p-4"
+                      >
+                        Aucun utilisateur.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

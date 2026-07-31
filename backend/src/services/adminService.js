@@ -13,19 +13,28 @@ const getAllUsers = async () => {
 
 const updateUserRole = async (userId, newRole, currentUserId) => {
 
-  // Vérification du rôle demandé
   if (!ROLES.includes(newRole)) {
     throw new Error("Rôle invalide");
   }
 
-
-  // Empêche un admin de modifier son propre rôle
   if (userId === currentUserId) {
     throw new Error(
       "Vous ne pouvez pas modifier votre propre rôle"
     );
   }
 
+  const user = await adminRepository.getUserById(userId);
+
+  if (!user) {
+    throw new Error("Utilisateur introuvable");
+  }
+
+  if (newRole !== "COMMERCIAL") {
+    await adminRepository.updateUserManager(
+      userId,
+      null
+    );
+  }
 
   return await adminRepository.updateUserRole(
     userId,
@@ -34,6 +43,25 @@ const updateUserRole = async (userId, newRole, currentUserId) => {
 };
 
 const updateUserManager = async (userId, managerId) => {
+
+  const user = await adminRepository.getUserById(userId);
+
+  if (!user) {
+    throw new Error("Utilisateur introuvable");
+  }
+
+  if (user.role !== "COMMERCIAL") {
+    throw new Error("Seuls les commerciaux peuvent être rattachés à un manager");
+  }
+
+  // Suppression de l'affectation
+  if (managerId === null) {
+    return adminRepository.updateUserManager(userId, null);
+  }
+
+  if (managerId === userId) {
+    throw new Error("Un utilisateur ne peut pas être son propre manager");
+  }
 
   const manager = await adminRepository.getUserById(managerId);
 
@@ -45,10 +73,7 @@ const updateUserManager = async (userId, managerId) => {
     throw new Error("L'utilisateur choisi n'est pas un manager");
   }
 
-  return await adminRepository.updateUserManager(
-    userId,
-    managerId
-  );
+  return adminRepository.updateUserManager(userId, managerId);
 };
 
 const deleteUser = async (userId, currentUserId) => {

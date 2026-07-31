@@ -9,4 +9,11 @@ export interface User {
 
 export interface AdminUser extends User {
   createdAt?: string;
+
+  managerId: number | null;
+
+  manager?: {
+    id: number;
+    pseudo: string;
+  } | null;
 }

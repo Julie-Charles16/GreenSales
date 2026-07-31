@@ -42,7 +42,12 @@ const updateUserRole = async (req, res) => {
 const updateUserManager = async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
-    const { managerId } = req.body;
+
+    const managerId =
+      req.body.managerId === null ||
+      req.body.managerId === ""
+        ? null
+        : parseInt(req.body.managerId);
 
     const user = await adminService.updateUserManager(
       userId,

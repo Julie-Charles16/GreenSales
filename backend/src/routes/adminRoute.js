@@ -22,7 +22,7 @@ router.patch(
 );
 
 router.patch(
-  "/users/:id/managerId",
+  "/users/:id/manager",
   authMiddleware,
   roleMiddleware("ADMIN"),
   adminController.updateUserManager
