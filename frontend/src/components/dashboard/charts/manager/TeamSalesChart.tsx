@@ -10,7 +10,7 @@ import {
   LabelList,
 } from "recharts";
 
-import type { Sale } from "../../../types/sale";
+import type { Sale } from "../../../../types/sale";
 
 interface Props {
   sales: Sale[];
@@ -24,8 +24,7 @@ const TeamSalesChart: React.FC<Props> = ({ sales }) => {
 
     sales.forEach((sale) => {
 
-      // En attendant d'avoir la relation User
-      const name = `Commercial ${sale.userId}`;
+      const name = sale.user?.pseudo ?? `Commercial ${sale.userId}`;
 
       if (!totals[name]) {
         totals[name] = 0;

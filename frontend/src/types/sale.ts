@@ -1,4 +1,4 @@
-export type SaleStatus = "EN_ATTENTE" | "ANNULEE" | "TERMINEE"
+export type SaleStatus = "EN_ATTENTE" | "ANNULEE" | "TERMINEE";
 
 export interface Sale {
   id: number;
@@ -8,6 +8,17 @@ export interface Sale {
   signedAt: string;
   clientId: number;
   userId: number;
+
+  user?: {
+    id: number;
+    pseudo: string;
+  };
+
+  client?: {
+    id: number;
+    name: string;
+    firstName: string;
+  };
 }
 
 export interface SaleFormData {
