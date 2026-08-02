@@ -4,7 +4,7 @@ import type { Sale } from "../../types/sale";
 import type { Appointment } from "../../types/appointment";
 import type { User } from "../../types/user";
 
-import MetricCard from "./common/MetricCard";
+import MetricCard from "../common/MetricCard";
 import UserRoleChart from "./charts/admin/UserRoleChart";
 import ActivityOverviewChart from "./charts/admin/ActivityOverviewChart";
 

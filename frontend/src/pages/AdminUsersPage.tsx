@@ -3,14 +3,11 @@ import { useAuth } from "../context/auth/useAuth";
 import { useToast } from "../context/toast/useToast";
 import { deleteManagedUser, getUsers, updateManagedUserRole, updateManagedUserManager } from "../services/adminService";
 import type { AdminUser, Role } from "../types/user";
+import { roleConfig } from "../utils/roleConfig";
+import RoleBadge from "../components/common/RoleBadge";
+
 
 const roles: Role[] = ["COMMERCIAL", "MANAGER", "ADMIN"];
-
-const roleLabel: Record<Role, string> = {
-  ADMIN: "Administrateur",
-  MANAGER: "Manager",
-  COMMERCIAL: "Commercial",
-};
 
 const AdminUsersPage = () => {
   const { user: currentUser } = useAuth();
@@ -153,14 +150,19 @@ const AdminUsersPage = () => {
 
                     return (
                       <tr key={managedUser.id}>
-                        <td className="ps-3 fw-semibold">
+                        <td className="ps-3">
+                        <div className="fw-semibold">
                           {managedUser.pseudo}
+
                           {isCurrentUser && (
                             <span className="badge text-bg-secondary ms-2">
                               Vous
                             </span>
                           )}
-                        </td>
+                        </div>
+
+                        <RoleBadge role={managedUser.role} />
+                      </td>
 
                         <td>
                           {managedUser.email}
@@ -181,7 +183,7 @@ const AdminUsersPage = () => {
                           >
                             {roles.map((role) => (
                               <option key={role} value={role}>
-                                {roleLabel[role]}
+                                {roleConfig[role].label}
                               </option>
                             ))}
                           </select>

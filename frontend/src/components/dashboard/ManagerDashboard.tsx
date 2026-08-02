@@ -2,7 +2,7 @@ import type { Client } from "../../types/client";
 import type { Sale } from "../../types/sale";
 import type { Appointment } from "../../types/appointment";
 
-import MetricCard from "./common/MetricCard";
+import MetricCard from "../common/MetricCard";
 import TeamSalesChart from "./charts/manager/TeamSalesChart";
 import ClientStatusChart from "./charts/manager/ClientStatusChart";
 

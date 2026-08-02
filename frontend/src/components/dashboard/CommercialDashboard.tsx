@@ -3,7 +3,7 @@ import type { Client } from "../../types/client";
 import type { Sale } from "../../types/sale";
 import type { Appointment } from "../../types/appointment";
 
-import MetricCard from "./common/MetricCard";
+import MetricCard from "../common/MetricCard";
 import AppointmentsChart from "./charts/commercial/AppointmentsChart";
 import SalesPipelineChart from "./charts/commercial/SalesPipelineChart";
 import DashboardHighlights from "./DashboardHighLights";

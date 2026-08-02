@@ -1,0 +1,26 @@
+import type { Role } from "../types/user";
+
+export const roleConfig: Record<
+  Role,
+  {
+    label: string;
+    color: string;
+    icon: string;
+  }
+> = {
+  COMMERCIAL: {
+    label: "Commercial",
+    color: "success",
+    icon: "bi-person-badge-fill",
+  },
+  MANAGER: {
+    label: "Manager",
+    color: "warning",
+    icon: "bi-people-fill",
+  },
+  ADMIN: {
+    label: "Administrateur",
+    color: "primary",
+    icon: "bi-shield-lock-fill",
+  },
+};
