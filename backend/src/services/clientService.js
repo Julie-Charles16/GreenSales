@@ -1,4 +1,4 @@
-const clientRepository = require('../repositories/clientRepository');
+const clientRepository = require("../repositories/clientRepository");
 
 // GET ALL (filtré par user)
 const getClients = async (userId, role) => {
@@ -16,8 +16,10 @@ const getClients = async (userId, role) => {
     const teamClients = await clientRepository.getTeamClients(userId);
 
     return [
-      ...ownClients,
-      ...teamClients,
+      ...new Map(
+        [...ownClients, ...teamClients]
+          .map(client => [client.id, client])
+      ).values()
     ];
   }
 
@@ -43,7 +45,6 @@ const getClient = async (id, userId, role) => {
 
     client = await clientRepository.getClientById(id);
 
-
     if (
       client &&
       client.userId !== userId &&
@@ -56,6 +57,7 @@ const getClient = async (id, userId, role) => {
 
   // COMMERCIAL : uniquement ses clients
   else {
+
     client = await clientRepository.getClientById(
       id,
       userId
@@ -72,33 +74,6 @@ const getClient = async (id, userId, role) => {
 
 
 // CREATE
-// const createClient = async (data) => {
-
-//   const { email, name, firstName, userId, role } = data;
-
-//   if (role === "ADMIN") {
-//     throw new Error(
-//       "Un administrateur ne peut pas créer de client"
-//     );
-//   }
-
-//   if (!email || !name || !firstName || !userId) {
-//     throw new Error('Champs obligatoires manquants');
-//   }
-
-//   const existing = await clientRepository.getClientByEmail(email);
-
-//   if (existing) {
-//     throw new Error('Email déjà utilisé');
-//   }
-
-//   return await clientRepository.createClient({
-//     ...data,
-//     status: data.status || "PROSPECT",
-//   });
-
-// };
-
 const createClient = async (data) => {
 
   const { email, name, firstName, userId, role } = data;
@@ -110,13 +85,13 @@ const createClient = async (data) => {
   }
 
   if (!email || !name || !firstName || !userId) {
-    throw new Error('Champs obligatoires manquants');
+    throw new Error("Champs obligatoires manquants");
   }
 
   const existing = await clientRepository.getClientByEmail(email);
 
   if (existing) {
-    throw new Error('Email déjà utilisé');
+    throw new Error("Email déjà utilisé");
   }
 
   const clientData = { ...data };
@@ -131,7 +106,6 @@ const createClient = async (data) => {
 };
 
 
-
 // UPDATE (sécurisé user)
 const updateClient = async (id, data, userId, role) => {
 
@@ -141,25 +115,19 @@ const updateClient = async (id, data, userId, role) => {
       "Un administrateur ne peut pas modifier un client"
     );
   }
-  
+
   const client = await clientRepository.getClientById(id);
 
   if (!client) {
     throw new Error("Client introuvable");
   }
 
-
-  // COMMERCIAL : uniquement ses clients
+  // COMMERCIAL et MANAGER ne peuvent modifier
+  // que leurs propres clients.
+  // Les clients de l'équipe restent accessibles
+  // en lecture seule pour le manager.
   if (
-    role === "COMMERCIAL" &&
-    client.userId !== userId
-  ) {
-    throw new Error("Accès interdit");
-  }
-
-  // MANAGER : uniquement ses propres clients
-  if (
-    role === "MANAGER" &&
+    ["COMMERCIAL", "MANAGER"].includes(role) &&
     client.userId !== userId
   ) {
     throw new Error("Accès interdit");
@@ -201,18 +169,12 @@ const deleteClient = async (id, userId, role) => {
     throw new Error("Client introuvable");
   }
 
-
-  // COMMERCIAL
+  // COMMERCIAL et MANAGER ne peuvent supprimer
+  // que leurs propres clients.
+  // Les clients de l'équipe restent accessibles
+  // en lecture seule pour le manager.
   if (
-    role === "COMMERCIAL" &&
-    client.userId !== userId
-  ) {
-    throw new Error("Accès interdit");
-  }
-
-  // MANAGER : uniquement ses propres clients
-  if (
-    role === "MANAGER" &&
+    ["COMMERCIAL", "MANAGER"].includes(role) &&
     client.userId !== userId
   ) {
     throw new Error("Accès interdit");

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import type { Client, ClientFormData } from "../types/client";
 import { getClients, createClient, updateClient, deleteClient } from "../services/clientService";
 import { Modal } from "bootstrap";
@@ -6,6 +6,7 @@ import { Modal } from "bootstrap";
 import { useAuth } from "../context/auth/useAuth";
 import { canEditOwnData, canDeleteOwnData, canCreateBusinessData} from "../utils/permissions";
 
+import ManagerTabs from "../components/common/ManagerTabs";
 import PageHeader from "../components/common/PageHeader";
 import ClientsFilters from "../components/clients/ClientsFilters";
 import ClientsKPI from "../components/clients/ClientsKPI";
@@ -36,6 +37,7 @@ const ClientsPage: React.FC = () => {
   const [filterCity, setFilterCity] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [view, setView] = useState<"table" | "cards">("table");
+  const [activeTab, setActiveTab] = useState<"mine" | "team">("mine");
 
   // ==============================
   // 🔹 STATE - gestion modales / UI
@@ -50,13 +52,26 @@ const ClientsPage: React.FC = () => {
   const formModalRef = useRef<HTMLDivElement>(null);
   const detailModalRef = useRef<HTMLDivElement>(null);
   const deleteModalRef = useRef<HTMLDivElement>(null);
-
+  
   // ==============================
   // 🔹 STATE - instances modales
   // ==============================
   const [formModal, setFormModal] = useState<Modal | null>(null);
   const [detailModal, setDetailModal] = useState<Modal | null>(null);
   const [deleteModal, setDeleteModal] = useState<Modal | null>(null);
+
+  // ==============================
+  // 🔹 API - chargement
+  // ==============================
+  
+  const loadClients = async () => {
+    try {
+      const data = await getClients();
+      setClients(data);
+    } catch (error) {
+      console.error("Erreur chargement clients :", error);
+    }
+  };
 
   // ==============================
   // 🔹 EFFECTS - initialisation
@@ -78,13 +93,9 @@ const ClientsPage: React.FC = () => {
   // Chargement initial des clients
   useEffect(() => {
     const fetchClients = async () => {
-      try {
-        const data = await getClients();
-        setClients(data);
-      } catch (error) {
-        console.error("Erreur chargement clients :", error);
-      }
+      await loadClients();
     };
+
     void fetchClients();
   }, []);
 
@@ -93,17 +104,43 @@ const ClientsPage: React.FC = () => {
   // ==============================
 
   // Liste filtrée + triée
-  const filteredClients = clients
-    .filter(c =>
-      `${c.name} ${c.firstName} ${c.email}`.toLowerCase().includes(search.toLowerCase()) &&
-      (filterCity ? c.city === filterCity : true) &&
-      (filterStatus ? c.status === filterStatus : true)
+  const filteredClients = useMemo(() => {
+  return clients
+    .filter(
+      (c) =>
+        `${c.name} ${c.firstName} ${c.email}`
+          .toLowerCase()
+          .includes(search.toLowerCase()) &&
+        (filterCity ? c.city === filterCity : true) &&
+        (filterStatus ? c.status === filterStatus : true)
     )
     .sort((a, b) => a.name.localeCompare(b.name));
+}, [clients, search, filterCity, filterStatus]);
+
+  const displayedClients = useMemo(() => {
+
+    if (user?.role !== "MANAGER") {
+      return filteredClients;
+    }
+
+    return filteredClients.filter(client =>
+      activeTab === "mine"
+        ? client.userId === user.id
+        : client.userId !== user.id
+    );
+
+  }, [filteredClients, activeTab, user]);
 
   // Options filtres
-  const cities = Array.from(new Set(clients.map(c => c.city))).sort();
-  const statuses = Array.from(new Set(clients.map(c => c.status)));
+  const cities = useMemo(
+    () => Array.from(new Set(clients.map(c => c.city))).sort(),
+    [clients]
+  );
+
+  const statuses = useMemo(
+    () => Array.from(new Set(clients.map(c => c.status))),
+    [clients]
+  );
 
   // ==============================
   // 🔹 HELPERS - utils UI
@@ -130,13 +167,6 @@ const ClientsPage: React.FC = () => {
     }
   };
 
-  // ==============================
-  // 🔹 API - chargement
-  // ==============================
-  const loadClients = async () => {
-    const data = await getClients();
-    setClients(data);
-  };
 
   // ==============================
   // 🔹 ACTIONS - CRUD
@@ -257,6 +287,15 @@ const ClientsPage: React.FC = () => {
         addIcon="bi-person-plus"
       />
 
+      {user?.role === "MANAGER" && (
+        <ManagerTabs
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          mineLabel="Mes clients"
+          teamLabel="Équipe"
+        />
+      )}
+
       {/* FILTRES */}
       <ClientsFilters
         search={search}
@@ -269,12 +308,12 @@ const ClientsPage: React.FC = () => {
         statuses={statuses}
       />
       {/* KPI MINI */}
-      <ClientsKPI clients={filteredClients}/>
+      <ClientsKPI clients={displayedClients} />
 
       {/* TABLE */}
       {view === "table" && (
       <ClientsTable
-        clients={filteredClients}
+        clients={displayedClients}
         getStatusColor={getStatusColor}
         getStatusBorderColor={getStatusBorderColor}
         onView={handleViewDetail}
@@ -307,7 +346,7 @@ const ClientsPage: React.FC = () => {
       {headerConfig.views.some(v => v.value === "cards") &&
       view === "cards" && (
         <ClientsCards
-        clients={filteredClients}
+        clients={displayedClients}
         getStatusColor={getStatusColor}
         getStatusBorderColor={getStatusBorderColor}
         onView={handleViewDetail}

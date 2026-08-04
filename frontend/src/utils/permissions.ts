@@ -76,5 +76,38 @@ export const canCreateBusinessData = (
   return role !== "ADMIN";
 };
 
+
+/**
+ * Vérifie si un utilisateur peut voir
+ * les données d'un autre utilisateur
+ */
+export const canViewUserData = (
+  role: Role,
+  ownerId: number,
+  userId: number
+): boolean => {
+
+  if (role === "ADMIN") {
+    return true;
+  }
+
+  if (role === "MANAGER") {
+    // temporairement :
+    // on autorisera l'équipe quand on aura
+    // la relation managerId
+    return ownerId === userId;
+  }
+
+  return ownerId === userId;
+};
+
+
+export const getBusinessPermissions = (role: Role) => ({
+  canCreate: role !== "ADMIN",
+  canEdit: role !== "ADMIN",
+  canDelete: role !== "ADMIN",
+});
+
+
 /** L'administration des comptes est réservée à l'administrateur. */
 export const canManageUsers = (role: Role): boolean => role === "ADMIN";
