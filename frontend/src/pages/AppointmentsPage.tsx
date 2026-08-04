@@ -15,11 +15,11 @@ import { useToast } from "../context/toast/useToast";
 import { useAuth } from "../context/auth/useAuth";
 import { canCreateBusinessData, canDeleteOwnData, canEditOwnData } from "../utils/permissions";
 
+import PageHeader from "../components/common/PageHeader";
 import AppointmentCalendar from "../components/appointment/AppointmentCalendar";
 import AppointmentsTable from "../components/appointment/AppointmentsTable";
 import AppointmentsCards from "../components/appointment/AppointmentsCards";
 import AppointmentForm from "../components/appointment/modals/AppointmentFormModal";
-import AppointmentsHeader from "../components/appointment/AppointmentsHeader";
 import AppointmentsKPI from "../components/appointment/AppointmentsKPI";
 import AppointmentsFilters from "../components/appointment/AppointmentsFilters";
 import AppointmentDeleteModal from "../components/appointment/modals/AppointmentDeleteModal";
@@ -28,6 +28,11 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const AppointmentsPage: React.FC = () => {
   const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
+  const canCreate = user
+    ? canCreateBusinessData(user.role)
+    : false;
+
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
 
@@ -35,8 +40,10 @@ const AppointmentsPage: React.FC = () => {
   const [toDelete, setToDelete] = useState<Appointment | null>(null);
 
   const { showToast } = useToast();
-  const [viewMode, setViewMode] = useState<"calendar" | "list" | "cards">("calendar");
-
+  const [viewMode, setViewMode] =
+    useState<"calendar" | "list" | "cards">(
+      isAdmin ? "list" : "calendar"
+    );
   // FILTRES (placés AVANT utilisation)
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
@@ -239,15 +246,62 @@ const AppointmentsPage: React.FC = () => {
     await loadAppointments();
   };
   
+  const handleAdd = () => {
+    if (!user || !canCreateBusinessData(user.role)) return;
+
+    setEditing({
+      id: 0,
+      date: new Date().toISOString().slice(0, 16),
+      status: "PLANIFIE",
+      comment: "",
+      clientId: 0,
+      userId: user.id,
+    });
+
+    formModal?.show();
+  };
+
+  const headerConfig = {
+    title: "Rendez-vous",
+
+    subtitle: isAdmin
+      ? "Consultez l'ensemble des rendez-vous."
+      : "Gérez votre agenda et vos rendez-vous.",
+
+    views: isAdmin
+      ? [
+          {
+            value: "list" as const,
+            label: "Liste",
+          },
+        ]
+      : [
+          {
+            value: "calendar" as const,
+            label: "Calendrier",
+          },
+          {
+            value: "list" as const,
+            label: "Liste",
+          },
+          {
+            value: "cards" as const,
+            label: "Cartes",
+          },
+        ],
+  };
+
   return (
     <div className="container mt-4">
-      <AppointmentsHeader
+      <PageHeader
+        title={headerConfig.title}
+        subtitle={headerConfig.subtitle}
         view={viewMode}
         setView={setViewMode}
-        onAdd={() => {
-          handleDateClick(new Date().toISOString());
-        }}
-        canCreate={user ? canCreateBusinessData(user.role) : false}
+        views={headerConfig.views}
+        onAdd={handleAdd}
+        canCreate={canCreate}
+        addIcon="bi-calendar-plus"
       />
       
       <AppointmentsFilters
@@ -262,16 +316,17 @@ const AppointmentsPage: React.FC = () => {
 
 
       {/* CALENDRIER */}
-      {viewMode === "calendar" && (
-      <AppointmentCalendar
-        appointments={filteredAppointments}
-        clients={clients}
-        getClientName={getClientName}
-        onEventClick={handleEventClick}
-        onDateClick={handleDateClick}
-        canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
-        canCreate={user ? canCreateBusinessData(user.role) : false}
-      />
+      {headerConfig.views.some(v => v.value === "calendar") &&
+      viewMode === "calendar" && (
+        <AppointmentCalendar
+          appointments={filteredAppointments}
+          clients={clients}
+          getClientName={getClientName}
+          onEventClick={handleEventClick}
+          onDateClick={handleDateClick}
+          canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
+          canCreate={user ? canCreateBusinessData(user.role) : false}
+        />
       )}
 
       {/* LISTE */}
@@ -299,27 +354,28 @@ const AppointmentsPage: React.FC = () => {
       )}
 
       {/* CARDS */}
-      {viewMode === "cards" && (
-      <AppointmentsCards
-        appointments={filteredAppointments}
-        clients={clients}
-        getClientName={getClientName}
-        getClientAddress={getClientAddress}
-        getClientProjectType={getClientProjectType}
-        getStatusColor={getStatusColor}
-        getStatusBorderColor={getStatusBorderColor}
-        formatDate={formatDate}
-        onEdit={(appt) => {
-          handleEventClick(appt);
-        }}
-        onDelete={(appt) => {
-          if (!user || !canDeleteOwnData(user.role, appt.userId, user.id)) return;
-          setToDelete(appt);
-          deleteModal?.show();
-        }}
-        canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
-        canDelete={(appointment) => user ? canDeleteOwnData(user.role, appointment.userId, user.id) : false}
-      />
+      {headerConfig.views.some(v => v.value === "cards") &&
+      viewMode === "cards" && (
+        <AppointmentsCards
+          appointments={filteredAppointments}
+          clients={clients}
+          getClientName={getClientName}
+          getClientAddress={getClientAddress}
+          getClientProjectType={getClientProjectType}
+          getStatusColor={getStatusColor}
+          getStatusBorderColor={getStatusBorderColor}
+          formatDate={formatDate}
+          onEdit={(appt) => {
+            handleEventClick(appt);
+          }}
+          onDelete={(appt) => {
+            if (!user || !canDeleteOwnData(user.role, appt.userId, user.id)) return;
+            setToDelete(appt);
+            deleteModal?.show();
+          }}
+          canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
+          canDelete={(appointment) => user ? canDeleteOwnData(user.role, appointment.userId, user.id) : false}
+        />
       )}
 
       {/* MODAL FORM ADD/EDIT */}

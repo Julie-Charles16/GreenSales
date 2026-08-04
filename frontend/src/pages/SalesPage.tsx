@@ -15,7 +15,7 @@ import { useToast } from "../context/toast/useToast";
 import { useAuth } from "../context/auth/useAuth";
 import { canCreateBusinessData, canDeleteOwnData, canEditOwnData } from "../utils/permissions";
 
-import SalesHeader from "../components/sales/SalesHeader";
+import PageHeader from "../components/common/PageHeader";
 import SalesFilters from "../components/sales/SalesFilters";
 import SalesKPI from "../components/sales/SalesKPI";
 import SalesPipeline from "../components/sales/SalesPipeline";
@@ -30,6 +30,12 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 const SalesPage: React.FC = () => {
   const { user } = useAuth();
 
+  const isAdmin = user?.role === "ADMIN";
+
+  const canCreate = user
+    ? canCreateBusinessData(user.role)
+    : false;
+
   // ==============================
   // 🔹 STATE - données principales
   // ==============================
@@ -41,7 +47,9 @@ const SalesPage: React.FC = () => {
   // ==============================
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
-  const [view, setView] = useState<"table" | "pipeline">("pipeline");
+  const [view, setView] = useState<"table" | "pipeline">(
+    isAdmin ? "table" : "pipeline"
+  );
 
   // ==============================
   // 🔹 STATE - gestion UI / modales
@@ -247,14 +255,44 @@ const SalesPage: React.FC = () => {
     await loadSales();
   };
 
+  const headerConfig = {
+    title: "Ventes",
+
+    subtitle: isAdmin
+      ? "Consultez l'ensemble des ventes."
+      : "Gérez et suivez vos ventes.",
+
+    views: isAdmin
+      ? [
+          {
+            value: "table" as const,
+            label: "Liste",
+          },
+        ]
+      : [
+          {
+            value: "table" as const,
+            label: "Liste",
+          },
+          {
+            value: "pipeline" as const,
+            label: "Pipeline",
+          },
+        ],
+  };
+
   return (
     <div className="container mt-4">
       {/* HEADER */}
-      <SalesHeader
+      <PageHeader
+        title={headerConfig.title}
+        subtitle={headerConfig.subtitle}
         view={view}
         setView={setView}
+        views={headerConfig.views}
         onAdd={handleAdd}
-        canCreate={user ? canCreateBusinessData(user.role) : false}
+        canCreate={canCreate}
+        addIcon="bi-cart-plus"
       />
 
       {/* FILTRES */}
@@ -271,16 +309,18 @@ const SalesPage: React.FC = () => {
 
 
       {/* Pipeline */}
-      {view === "pipeline" &&(
+      {headerConfig.views.some(v => v.value === "pipeline") &&
+      view === "pipeline" && (
         <SalesPipeline
-        sales={filteredSales}
-        clients={clients}
-        onEdit={handleEdit}
-        onDelete={handleDeleteClick}
-        canEdit={(sale) => user ? canEditOwnData(user.role, sale.userId, user.id) : false}
-        canDelete={(sale) => user ? canDeleteOwnData(user.role, sale.userId, user.id) : false}
-      />
+          sales={filteredSales}
+          clients={clients}
+          onEdit={handleEdit}
+          onDelete={handleDeleteClick}
+          canEdit={(sale) => user ? canEditOwnData(user.role, sale.userId, user.id) : false}
+          canDelete={(sale) => user ? canDeleteOwnData(user.role, sale.userId, user.id) : false}
+        />
       )}
+      
       {/* Tableau */}
       {view === "table" &&(
       <SalesTable

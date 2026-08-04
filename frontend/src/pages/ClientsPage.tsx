@@ -6,7 +6,7 @@ import { Modal } from "bootstrap";
 import { useAuth } from "../context/auth/useAuth";
 import { canEditOwnData, canDeleteOwnData, canCreateBusinessData} from "../utils/permissions";
 
-import ClientsHeader from "../components/clients/ClientsHeader";
+import PageHeader from "../components/common/PageHeader";
 import ClientsFilters from "../components/clients/ClientsFilters";
 import ClientsKPI from "../components/clients/ClientsKPI";
 import ClientsTable from "../components/clients/ClientsTable";
@@ -22,6 +22,8 @@ import { useToast } from "../context/toast/useToast";
 const ClientsPage: React.FC = () => {
 
   const { user } = useAuth();
+
+  const isAdmin = user?.role === "ADMIN";
   // ==============================
   // 🔹 STATE - données principales
   // ==============================
@@ -210,11 +212,40 @@ const ClientsPage: React.FC = () => {
     await loadClients();
   };
 
+  const headerConfig = {
+    title: "Clients",
+
+    subtitle: isAdmin
+      ? "Consultez l'ensemble des clients enregistrés."
+      : "Gérez et suivez vos relations clients.",
+
+    views: isAdmin
+      ? [
+          {
+            value: "table" as const,
+            label: "Liste",
+          },
+        ]
+      : [
+          {
+            value: "table" as const,
+            label: "Liste",
+          },
+          {
+            value: "cards" as const,
+            label: "Cartes",
+          },
+        ],
+  };
+
   return (
     <div className="container mt-4">
 
       {/* HEADER */}
-      <ClientsHeader
+      <PageHeader
+        title={headerConfig.title}
+        subtitle={headerConfig.subtitle}
+        views={headerConfig.views}
         view={view}
         setView={setView}
         onAdd={handleAdd}
@@ -223,6 +254,7 @@ const ClientsPage: React.FC = () => {
             ? canCreateBusinessData(user.role)
             : false
         }
+        addIcon="bi-person-plus"
       />
 
       {/* FILTRES */}
@@ -272,8 +304,9 @@ const ClientsPage: React.FC = () => {
       )}
       
       {/* CARDS */}
-      {view === "cards" && (
-      <ClientsCards
+      {headerConfig.views.some(v => v.value === "cards") &&
+      view === "cards" && (
+        <ClientsCards
         clients={filteredClients}
         getStatusColor={getStatusColor}
         getStatusBorderColor={getStatusBorderColor}
@@ -282,7 +315,7 @@ const ClientsPage: React.FC = () => {
         onDelete={handleDeleteClick}
         canEdit={(client) => user ? canEditOwnData(user.role, client.userId, user.id) : false}
         canDelete={(client) => user ? canDeleteOwnData(user.role, client.userId, user.id) : false}
-      />
+        />
       )}
 
       {/* MODAL FORM ADD/EDIT*/}
