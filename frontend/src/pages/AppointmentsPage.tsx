@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { Modal } from "bootstrap";
 
 import {
@@ -23,6 +23,8 @@ import AppointmentForm from "../components/appointment/modals/AppointmentFormMod
 import AppointmentsKPI from "../components/appointment/AppointmentsKPI";
 import AppointmentsFilters from "../components/appointment/AppointmentsFilters";
 import AppointmentDeleteModal from "../components/appointment/modals/AppointmentDeleteModal";
+import ManagerTabs from "../components/common/ManagerTabs";
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
@@ -44,6 +46,8 @@ const AppointmentsPage: React.FC = () => {
     useState<"calendar" | "list" | "cards">(
       isAdmin ? "list" : "calendar"
     );
+  const [activeTab, setActiveTab] = useState<"mine" | "team">("mine");
+
   // FILTRES (placés AVANT utilisation)
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
@@ -176,6 +180,19 @@ const AppointmentsPage: React.FC = () => {
     })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+
+  const displayedAppointments = useMemo(() => {
+    if (user?.role !== "MANAGER") {
+      return filteredAppointments;
+    }
+
+    return filteredAppointments.filter((appointment) =>
+      activeTab === "mine"
+        ? appointment.userId === user.id
+        : appointment.userId !== user.id
+    );
+  }, [filteredAppointments, activeTab, user]);
+
   // actions calendrier
   const handleEventClick = (appt: Appointment) => {
     if (!user || !canEditOwnData(user.role, appt.userId, user.id)) return;
@@ -291,6 +308,13 @@ const AppointmentsPage: React.FC = () => {
         ],
   };
 
+  const handleTableDelete = (appointment: Appointment) => {
+    if (!user || !canDeleteOwnData(user.role, appointment.userId, user.id)) return;
+
+    setToDelete(appointment);
+    deleteModal?.show();
+  };
+
   return (
     <div className="container mt-4">
       <PageHeader
@@ -303,6 +327,15 @@ const AppointmentsPage: React.FC = () => {
         canCreate={canCreate}
         addIcon="bi-calendar-plus"
       />
+
+      {user?.role === "MANAGER" && (
+        <ManagerTabs
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          mineLabel="Mes rendez-vous"
+          teamLabel="Équipe"
+        />
+      )}
       
       <AppointmentsFilters
         search={search}
@@ -312,14 +345,13 @@ const AppointmentsPage: React.FC = () => {
         statuses={statuses}
       />
 
-      <AppointmentsKPI appointments={filteredAppointments} />
-
+      <AppointmentsKPI appointments={displayedAppointments} />
 
       {/* CALENDRIER */}
       {headerConfig.views.some(v => v.value === "calendar") &&
       viewMode === "calendar" && (
         <AppointmentCalendar
-          appointments={filteredAppointments}
+          appointments={displayedAppointments}
           clients={clients}
           getClientName={getClientName}
           onEventClick={handleEventClick}
@@ -332,7 +364,7 @@ const AppointmentsPage: React.FC = () => {
       {/* LISTE */}
       {viewMode === "list" && (
       <AppointmentsTable
-        appointments={filteredAppointments}
+        appointments={displayedAppointments}
         clients={clients}
         getClientName={getClientName}
         getClientProjectType={getClientProjectType}
@@ -340,14 +372,8 @@ const AppointmentsPage: React.FC = () => {
         getStatusColor={getStatusColor}
         getStatusBorderColor={getStatusBorderColor}
         formatDate={formatDate}
-        onEdit={(appt) => {
-          handleEventClick(appt);
-        }}
-        onDelete={(appt) => {
-          if (!user || !canDeleteOwnData(user.role, appt.userId, user.id)) return;
-          setToDelete(appt);
-          deleteModal?.show();
-        }}
+        onEdit={handleEventClick}
+        onDelete={handleTableDelete}
         canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
         canDelete={(appointment) => user ? canDeleteOwnData(user.role, appointment.userId, user.id) : false}
       />
@@ -357,7 +383,7 @@ const AppointmentsPage: React.FC = () => {
       {headerConfig.views.some(v => v.value === "cards") &&
       viewMode === "cards" && (
         <AppointmentsCards
-          appointments={filteredAppointments}
+          appointments={displayedAppointments}
           clients={clients}
           getClientName={getClientName}
           getClientAddress={getClientAddress}
@@ -365,14 +391,8 @@ const AppointmentsPage: React.FC = () => {
           getStatusColor={getStatusColor}
           getStatusBorderColor={getStatusBorderColor}
           formatDate={formatDate}
-          onEdit={(appt) => {
-            handleEventClick(appt);
-          }}
-          onDelete={(appt) => {
-            if (!user || !canDeleteOwnData(user.role, appt.userId, user.id)) return;
-            setToDelete(appt);
-            deleteModal?.show();
-          }}
+          onEdit={handleEventClick}
+          onDelete={handleTableDelete}
           canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
           canDelete={(appointment) => user ? canDeleteOwnData(user.role, appointment.userId, user.id) : false}
         />

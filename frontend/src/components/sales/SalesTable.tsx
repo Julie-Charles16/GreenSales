@@ -1,9 +1,7 @@
 import type { Sale } from "../../types/sale";
-import type { Client } from "../../types/client";
+// import type { Client } from "../../types/client";
 
 interface Props {
-    clients: Client[];
-    sales: Sale[];
     filteredSales: Sale[];
     getClientName: (clientId: number) => string;
     getClientProjectType: (clientId: number) => string;

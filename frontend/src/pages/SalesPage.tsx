@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { Modal } from "bootstrap";
 import {
   getSales,
@@ -22,7 +22,7 @@ import SalesPipeline from "../components/sales/SalesPipeline";
 import SalesTable from "../components/sales/SalesTable";
 import SaleForm from "../components/sales/modals/SaleFormModal";
 import SaleDeleteModal from "../components/sales/modals/SaleDeleteModal";
-
+import ManagerTabs from "../components/common/ManagerTabs";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
@@ -50,6 +50,7 @@ const SalesPage: React.FC = () => {
   const [view, setView] = useState<"table" | "pipeline">(
     isAdmin ? "table" : "pipeline"
   );
+  const [activeTab, setActiveTab] = useState<"mine" | "team">("mine");
 
   // ==============================
   // 🔹 STATE - gestion UI / modales
@@ -162,6 +163,18 @@ const SalesPage: React.FC = () => {
       (filterStatus ? s.status === filterStatus : true)
   );
 
+
+  const displayedSales = useMemo(() => {
+    if (user?.role !== "MANAGER") {
+      return filteredSales;
+    }
+
+    return filteredSales.filter((sales) =>
+      activeTab === "mine"
+        ? sales.userId === user.id
+        : sales.userId !== user.id
+    );
+  }, [filteredSales, activeTab, user]);
 
   // Options filtres
   const statuses = Array.from(new Set(sales.map((s) => s.status)));
@@ -295,6 +308,15 @@ const SalesPage: React.FC = () => {
         addIcon="bi-cart-plus"
       />
 
+      {user?.role === "MANAGER" && (
+        <ManagerTabs
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          mineLabel="Mes ventes"
+          teamLabel="Équipe"
+        />
+      )}
+
       {/* FILTRES */}
       <SalesFilters
         search={search}
@@ -305,14 +327,13 @@ const SalesPage: React.FC = () => {
       />
 
       {/* KPI COMMISSION */}
-      <SalesKPI sales={filteredSales} />
-
+      <SalesKPI sales={displayedSales} /> 
 
       {/* Pipeline */}
       {headerConfig.views.some(v => v.value === "pipeline") &&
       view === "pipeline" && (
         <SalesPipeline
-          sales={filteredSales}
+          sales={displayedSales}
           clients={clients}
           onEdit={handleEdit}
           onDelete={handleDeleteClick}
@@ -324,9 +345,7 @@ const SalesPage: React.FC = () => {
       {/* Tableau */}
       {view === "table" &&(
       <SalesTable
-        clients={clients}
-        sales={sales}
-        filteredSales={filteredSales}
+        filteredSales={displayedSales}
         getClientName={getClientName}
         getClientProjectType={getClientProjectType}
         getStatusColor={getStatusColor}
