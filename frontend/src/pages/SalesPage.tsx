@@ -16,7 +16,7 @@ import { useAuth } from "../context/auth/useAuth";
 import { canCreateBusinessData, canDeleteOwnData, canEditOwnData } from "../utils/permissions";
 
 import PageHeader from "../components/common/PageHeader";
-import SalesFilters from "../components/sales/SalesFilters";
+// import SalesFilters from "../components/sales/SalesFilters";
 import SalesKPI from "../components/sales/SalesKPI";
 import SalesPipeline from "../components/sales/SalesPipeline";
 import SalesTable from "../components/sales/SalesTable";
@@ -24,8 +24,11 @@ import SaleForm from "../components/sales/modals/SaleFormModal";
 import SaleDeleteModal from "../components/sales/modals/SaleDeleteModal";
 import ManagerTabs from "../components/common/ManagerTabs";
 
+import { matchStartSearch } from "../utils/search";
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import FiltersBar from "../components/common/FiltersBar";
 
 const SalesPage: React.FC = () => {
   const { user } = useAuth();
@@ -58,6 +61,13 @@ const SalesPage: React.FC = () => {
   const [editingSale, setEditingSale] = useState<Sale | null>(null);
   const [saleToDelete, setSaleToDelete] = useState<Sale | null>(null);
   const { showToast } = useToast();
+
+  const clientsMap = useMemo(() => {
+    return new Map(
+      clients.map((client) => [client.id, client])
+    );
+  }, [clients]);
+
   // ==============================
   // 🔹 REFS - modales Bootstrap
   // ==============================
@@ -76,19 +86,19 @@ const SalesPage: React.FC = () => {
 
   // Init Bootstrap modals
   useEffect(() => {
-  if (formModalRef.current) {
-    const modal = new Modal(formModalRef.current, {
-      backdrop: true, 
-      keyboard: true,
-    });
+    if (formModalRef.current) {
+      const modal = new Modal(formModalRef.current, {
+        backdrop: true, 
+        keyboard: true,
+      });
 
-    setFormModal(modal);
-  }
+      setFormModal(modal);
+    }
 
-  if (deleteModalRef.current) {
-    setDeleteModal(new Modal(deleteModalRef.current));
-  }
-}, []);
+    if (deleteModalRef.current) {
+      setDeleteModal(new Modal(deleteModalRef.current));
+    }
+  }, []);
 
 // reset quand
   useEffect(() => {
@@ -139,14 +149,15 @@ const SalesPage: React.FC = () => {
   // ==============================
 
   const getClientName = (clientId: number) => {
-    const client = clients.find((c) => c.id === clientId);
+    const client = clientsMap.get(clientId);
+
     return client
       ? `${client.name} ${client.firstName}`
       : "Client inconnu";
   };
 
   const getClientProjectType = (clientId: number): string => {
-    const client = clients.find((c) => c.id === clientId);
+    const client = clientsMap.get(clientId);
     return client ? client.projectType : "Non défini";
   };
   
@@ -155,13 +166,18 @@ const SalesPage: React.FC = () => {
   // ==============================
 
   // Filtrage
-  const filteredSales = sales.filter(
-    (s) =>
-      getClientName(s.clientId)
-        .toLowerCase()
-        .includes(search.toLowerCase()) &&
-      (filterStatus ? s.status === filterStatus : true)
-  );
+  const filteredSales = useMemo(() => {
+    return sales.filter((sale) => {
+      const client = clientsMap.get(sale.clientId);
+
+      return (
+        matchStartSearch(search, client?.name ?? "") &&
+        (filterStatus
+          ? sale.status === filterStatus
+          : true)
+      );
+    });
+  }, [sales, clientsMap, search, filterStatus]);
 
 
   const displayedSales = useMemo(() => {
@@ -273,7 +289,9 @@ const SalesPage: React.FC = () => {
 
     subtitle: isAdmin
       ? "Consultez l'ensemble des ventes."
-      : "Gérez et suivez vos ventes.",
+      : user?.role === "MANAGER" && activeTab === "team"
+        ? "Consultez les ventes de votre équipe."
+        : "Gérez et suivez vos ventes.",
 
     views: isAdmin
       ? [
@@ -318,12 +336,29 @@ const SalesPage: React.FC = () => {
       )}
 
       {/* FILTRES */}
-      <SalesFilters
+      {/* <SalesFilters
         search={search}
         setSearch={setSearch}
         filterStatus={filterStatus}
         setFilterStatus={setFilterStatus}
         statuses={statuses}
+      /> */}
+
+      <FiltersBar
+        search={search}
+        setSearch={setSearch}
+        searchPlaceholder="Rechercher par client..."
+        selects={[
+          {
+            value: filterStatus,
+            setValue: setFilterStatus,
+            placeholder: "Tous statuts",
+            options: statuses.map(status => ({
+              value: status,
+              label: status,
+            })),
+          },
+        ]}
       />
 
       {/* KPI COMMISSION */}

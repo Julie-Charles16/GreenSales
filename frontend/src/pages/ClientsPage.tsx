@@ -8,7 +8,7 @@ import { canEditOwnData, canDeleteOwnData, canCreateBusinessData} from "../utils
 
 import ManagerTabs from "../components/common/ManagerTabs";
 import PageHeader from "../components/common/PageHeader";
-import ClientsFilters from "../components/clients/ClientsFilters";
+// import ClientsFilters from "../components/clients/ClientsFilters";
 import ClientsKPI from "../components/clients/ClientsKPI";
 import ClientsTable from "../components/clients/ClientsTable";
 import ClientsCards from "../components/clients/ClientsCards";
@@ -16,9 +16,12 @@ import ClientForm from "../components/clients/modals/ClientFormModal";
 import ClientDetailModal from "../components/clients/modals/ClientDetailModal";
 import ClientDeleteModal from "../components/clients/modals/ClientDeleteModal";
 
+import { matchStartSearch } from "../utils/search";
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { useToast } from "../context/toast/useToast";
+import FiltersBar from "../components/common/FiltersBar";
 
 const ClientsPage: React.FC = () => {
 
@@ -105,17 +108,16 @@ const ClientsPage: React.FC = () => {
 
   // Liste filtrée + triée
   const filteredClients = useMemo(() => {
-  return clients
-    .filter(
-      (c) =>
-        `${c.name} ${c.firstName} ${c.email}`
-          .toLowerCase()
-          .includes(search.toLowerCase()) &&
-        (filterCity ? c.city === filterCity : true) &&
-        (filterStatus ? c.status === filterStatus : true)
-    )
-    .sort((a, b) => a.name.localeCompare(b.name));
-}, [clients, search, filterCity, filterStatus]);
+    return clients
+      .filter(
+        (c) =>
+          matchStartSearch(search, c.name) &&
+          (filterCity ? c.city === filterCity : true) &&
+          (filterStatus ? c.status === filterStatus : true)
+      )
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+  }, [clients, search, filterCity, filterStatus]);
 
   const displayedClients = useMemo(() => {
 
@@ -247,7 +249,9 @@ const ClientsPage: React.FC = () => {
 
     subtitle: isAdmin
       ? "Consultez l'ensemble des clients enregistrés."
-      : "Gérez et suivez vos relations clients.",
+      : user?.role === "MANAGER" && activeTab === "team"
+        ? "Consultez les clients de votre équipe."
+        : "Gérez et suivez vos relations clients.",
 
     views: isAdmin
       ? [
@@ -297,7 +301,7 @@ const ClientsPage: React.FC = () => {
       )}
 
       {/* FILTRES */}
-      <ClientsFilters
+      {/* <ClientsFilters
         search={search}
         setSearch={setSearch}
         filterCity={filterCity}
@@ -306,6 +310,32 @@ const ClientsPage: React.FC = () => {
         setFilterStatus={setFilterStatus}
         cities={cities}
         statuses={statuses}
+      /> */}
+
+      <FiltersBar
+        search={search}
+        setSearch={setSearch}
+        searchPlaceholder="Rechercher un client..."
+        selects={[
+          {
+            value: filterCity,
+            setValue: setFilterCity,
+            placeholder: "Toutes les villes",
+            options: cities.map(city => ({
+              value: city,
+              label: city,
+            })),
+          },
+          {
+            value: filterStatus,
+            setValue: setFilterStatus,
+            placeholder: "Tous statuts",
+            options: statuses.map(status => ({
+              value: status,
+              label: status,
+            })),
+          },
+        ]}
       />
       {/* KPI MINI */}
       <ClientsKPI clients={displayedClients} />

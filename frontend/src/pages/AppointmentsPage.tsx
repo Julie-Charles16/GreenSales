@@ -21,12 +21,15 @@ import AppointmentsTable from "../components/appointment/AppointmentsTable";
 import AppointmentsCards from "../components/appointment/AppointmentsCards";
 import AppointmentForm from "../components/appointment/modals/AppointmentFormModal";
 import AppointmentsKPI from "../components/appointment/AppointmentsKPI";
-import AppointmentsFilters from "../components/appointment/AppointmentsFilters";
+// import AppointmentsFilters from "../components/appointment/AppointmentsFilters";
 import AppointmentDeleteModal from "../components/appointment/modals/AppointmentDeleteModal";
 import ManagerTabs from "../components/common/ManagerTabs";
 
+import { matchStartSearch } from "../utils/search";
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import FiltersBar from "../components/common/FiltersBar";
 
 const AppointmentsPage: React.FC = () => {
   const { user } = useAuth();
@@ -58,6 +61,12 @@ const AppointmentsPage: React.FC = () => {
 
   const [formModal, setFormModal] = useState<Modal | null>(null);
   const [deleteModal, setDeleteModal] = useState<Modal | null>(null);
+
+  const clientsMap = useMemo(() => {
+    return new Map(
+      clients.map((client) => [client.id, client])
+    );
+  }, [clients]);
 
   // init modales
   useEffect(() => {
@@ -118,17 +127,25 @@ const AppointmentsPage: React.FC = () => {
 
   // helpers
   const getClientName = (clientId: number) => {
-    const client = clients.find((c) => c.id === clientId);
-    return client ? `${client.name} ${client.firstName}` : "Client inconnu";
+    const client = clientsMap.get(clientId);
+
+    return client
+      ? `${client.name} ${client.firstName}`
+      : "Client inconnu";
   };
 
   const getClientAddress = (clientId: number) => {
-    const client = clients.find((c) => c.id === clientId);
-    return client ? `${client.address} , ${client.city}` : "Non défini";
-  }
+    const client = clientsMap.get(clientId);
+
+    return client
+      ? `${client.address}, ${client.city}`
+      : "Non défini";
+  };
   const getClientProjectType = (clientId: number) => {
-    const client = clients.find((c) => c.id === clientId);
-    return client?.projectType || "Non défini";
+    return (
+      clientsMap.get(clientId)?.projectType ??
+      "Non défini"
+    );
   };
 
   const formatDate = (date: string) => {
@@ -163,23 +180,27 @@ const AppointmentsPage: React.FC = () => {
   const statuses = Array.from(new Set(appointments.map((a) => a.status)));
 
   // FILTRE
-  const filteredAppointments = appointments
-    .filter((appt) => {
-      const client = clients.find((c) => c.id === appt.clientId);
+  const filteredAppointments = useMemo(() => {
+    return appointments
+      .filter((appointment) => {
+        const client = clientsMap.get(
+          appointment.clientId
+        );
 
-      const searchable = `
-        ${client?.name || ""}
-        ${client?.firstName || ""}
-        ${client?.email || ""}
-      `.toLowerCase();
-
-      return (
-        searchable.includes(search.toLowerCase()) &&
-        (filterStatus ? appt.status === filterStatus : true)
+        return (
+          matchStartSearch(search, client?.name ?? "") &&
+          (filterStatus
+            ? appointment.status === filterStatus
+            : true)
+        );
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.date).getTime() -
+          new Date(b.date).getTime()
       );
-    })
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+  }, [appointments, clientsMap, search, filterStatus]);
 
   const displayedAppointments = useMemo(() => {
     if (user?.role !== "MANAGER") {
@@ -283,7 +304,9 @@ const AppointmentsPage: React.FC = () => {
 
     subtitle: isAdmin
       ? "Consultez l'ensemble des rendez-vous."
-      : "Gérez votre agenda et vos rendez-vous.",
+      : user?.role === "MANAGER" && activeTab === "team"
+        ? "Consultez les rendez-vous de votre équipe."
+        : "Gérez votre agenda et vos rendez-vous.",
 
     views: isAdmin
       ? [
@@ -337,12 +360,29 @@ const AppointmentsPage: React.FC = () => {
         />
       )}
       
-      <AppointmentsFilters
+      {/* <AppointmentsFilters
         search={search}
         setSearch={setSearch}
         filterStatus={filterStatus}
         setFilterStatus={setFilterStatus}
         statuses={statuses}
+      /> */}
+
+      <FiltersBar
+        search={search}
+        setSearch={setSearch}
+        searchPlaceholder="Rechercher par client..."
+        selects={[
+          {
+            value: filterStatus,
+            setValue: setFilterStatus,
+            placeholder: "Tous statuts",
+            options: statuses.map(status => ({
+              value: status,
+              label: status,
+            })),
+          },
+        ]}
       />
 
       <AppointmentsKPI appointments={displayedAppointments} />
