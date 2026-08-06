@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
-import { Modal } from "bootstrap";
+import React, { useEffect, useState, useMemo } from "react";
 
 import {
   getAppointments,
@@ -15,21 +14,27 @@ import { useToast } from "../context/toast/useToast";
 import { useAuth } from "../context/auth/useAuth";
 import { canCreateBusinessData, canDeleteOwnData, canEditOwnData } from "../utils/permissions";
 
-import PageHeader from "../components/common/PageHeader";
 import AppointmentCalendar from "../components/appointment/AppointmentCalendar";
 import AppointmentsTable from "../components/appointment/AppointmentsTable";
 import AppointmentsCards from "../components/appointment/AppointmentsCards";
-import AppointmentForm from "../components/appointment/modals/AppointmentFormModal";
 import AppointmentsKPI from "../components/appointment/AppointmentsKPI";
-// import AppointmentsFilters from "../components/appointment/AppointmentsFilters";
+
+import AppointmentForm from "../components/appointment/modals/AppointmentFormModal";
 import AppointmentDeleteModal from "../components/appointment/modals/AppointmentDeleteModal";
+
+import FiltersBar from "../components/common/FiltersBar";
 import ManagerTabs from "../components/common/ManagerTabs";
+import PageHeader from "../components/common/PageHeader";
+
+import { useBootstrapModal } from "../hooks/useBootstrapModal";
 
 import { matchStartSearch } from "../utils/search";
+import { getAppointmentStatusColor, getAppointmentStatusBorderColor } from "../utils/statusColors";
+import { getClientName, getClientAddress, getClientProjectType } from "../utils/clientHelpers";
+import { formatDateTime } from "../utils/date";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import FiltersBar from "../components/common/FiltersBar";
 
 const AppointmentsPage: React.FC = () => {
   const { user } = useAuth();
@@ -55,34 +60,18 @@ const AppointmentsPage: React.FC = () => {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
 
-  // refs modales
-  const formModalRef = useRef<HTMLDivElement>(null);
-  const deleteModalRef = useRef<HTMLDivElement>(null);
-
-  const [formModal, setFormModal] = useState<Modal | null>(null);
-  const [deleteModal, setDeleteModal] = useState<Modal | null>(null);
-
   const clientsMap = useMemo(() => {
     return new Map(
       clients.map((client) => [client.id, client])
     );
   }, [clients]);
 
-  // init modales
-  useEffect(() => {
-    if (formModalRef.current) {
-      const modal = new Modal(formModalRef.current, {
-        backdrop: true,
-        keyboard: true,
-      });
-
-      setFormModal(modal);
-    }
-
-    if (deleteModalRef.current) {
-      setDeleteModal(new Modal(deleteModalRef.current));
-    }
-  }, []);
+  const {
+    formModalRef,
+    deleteModalRef,
+    formModal,
+    deleteModal,
+  } = useBootstrapModal();
 
   // RESET quand modal se ferme
   useEffect(() => {
@@ -98,82 +87,31 @@ const AppointmentsPage: React.FC = () => {
     return () => {
       el.removeEventListener("hidden.bs.modal", handleHidden);
     };
-  }, []);
+  }, [formModalRef]);
 
   // load data
   useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const [appointmentsData, clientsData] = await Promise.all([
-        getAppointments(),
-        getClients(),
-      ]);
+    const fetchData = async () => {
+      try {
+        const [appointmentsData, clientsData] = await Promise.all([
+          getAppointments(),
+          getClients(),
+        ]);
 
-      setAppointments(appointmentsData);
-      setClients(clientsData);
+        setAppointments(appointmentsData);
+        setClients(clientsData);
 
-    } catch (error) {
-      console.error("Erreur chargement appointments :", error);
-    }
-  };
+      } catch (error) {
+        console.error("Erreur chargement appointments :", error);
+      }
+    };
 
-  fetchData();
-}, []);
+    fetchData();
+  }, []);
 
   const loadAppointments = async () => {
     const data = await getAppointments();
     setAppointments(data);
-  };
-
-  // helpers
-  const getClientName = (clientId: number) => {
-    const client = clientsMap.get(clientId);
-
-    return client
-      ? `${client.name} ${client.firstName}`
-      : "Client inconnu";
-  };
-
-  const getClientAddress = (clientId: number) => {
-    const client = clientsMap.get(clientId);
-
-    return client
-      ? `${client.address}, ${client.city}`
-      : "Non défini";
-  };
-  const getClientProjectType = (clientId: number) => {
-    return (
-      clientsMap.get(clientId)?.projectType ??
-      "Non défini"
-    );
-  };
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "PLANIFIE": return "info";
-      case "ANNULE": return "warning";
-      case "TERMINE": return "success";
-      default: return "secondary";
-    }
-  };
-
-  const getStatusBorderColor = (status: string) => {
-    switch (getStatusColor(status)) {
-      case "warning": return "#f59f00";
-      case "success": return "#20c997";
-      case "info": return "#339af0";
-      default: return "#adb5bd";
-    }
   };
 
   // STATUSES
@@ -359,14 +297,6 @@ const AppointmentsPage: React.FC = () => {
           teamLabel="Équipe"
         />
       )}
-      
-      {/* <AppointmentsFilters
-        search={search}
-        setSearch={setSearch}
-        filterStatus={filterStatus}
-        setFilterStatus={setFilterStatus}
-        statuses={statuses}
-      /> */}
 
       <FiltersBar
         search={search}
@@ -393,8 +323,7 @@ const AppointmentsPage: React.FC = () => {
         <AppointmentCalendar
           appointments={displayedAppointments}
           clients={clients}
-          getClientName={getClientName}
-          onEventClick={handleEventClick}
+          getClientName={(id) => getClientName(clients, id)}          onEventClick={handleEventClick}
           onDateClick={handleDateClick}
           canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
           canCreate={user ? canCreateBusinessData(user.role) : false}
@@ -406,12 +335,12 @@ const AppointmentsPage: React.FC = () => {
       <AppointmentsTable
         appointments={displayedAppointments}
         clients={clients}
-        getClientName={getClientName}
-        getClientProjectType={getClientProjectType}
-        getClientAddress={getClientAddress}
-        getStatusColor={getStatusColor}
-        getStatusBorderColor={getStatusBorderColor}
-        formatDate={formatDate}
+        getClientName={(id) => getClientName(clients, id)} 
+        getClientProjectType={(id) => getClientProjectType(clients, id)}
+        getClientAddress={(id) => getClientAddress(clients, id)}
+        getStatusColor={getAppointmentStatusColor}
+        getStatusBorderColor={getAppointmentStatusBorderColor}
+        formatDate={formatDateTime}
         onEdit={handleEventClick}
         onDelete={handleTableDelete}
         canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
@@ -425,12 +354,12 @@ const AppointmentsPage: React.FC = () => {
         <AppointmentsCards
           appointments={displayedAppointments}
           clients={clients}
-          getClientName={getClientName}
-          getClientAddress={getClientAddress}
-          getClientProjectType={getClientProjectType}
-          getStatusColor={getStatusColor}
-          getStatusBorderColor={getStatusBorderColor}
-          formatDate={formatDate}
+          getClientName={(id) => getClientName(clients, id)}
+          getClientAddress={(id) =>getClientAddress(clients, id)}
+          getClientProjectType={(id) =>getClientProjectType(clients, id)}
+          getStatusColor={getAppointmentStatusColor}
+          getStatusBorderColor={getAppointmentStatusBorderColor}
+          formatDate={formatDateTime}
           onEdit={handleEventClick}
           onDelete={handleTableDelete}
           canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
@@ -461,7 +390,7 @@ const AppointmentsPage: React.FC = () => {
         modalRef={deleteModalRef}
         onClose={() => deleteModal?.hide()}
         onConfirm={confirmDelete}
-        getClientName={getClientName}
+        getClientName={(id) => getClientName(clients, id)}
       />      
     </div>
   );

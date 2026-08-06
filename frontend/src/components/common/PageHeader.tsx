@@ -1,5 +1,3 @@
-import React from "react";
-
 interface ViewOption<T extends string> {
   value: T;
   label: string;

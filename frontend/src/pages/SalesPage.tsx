@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
-import { Modal } from "bootstrap";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   getSales,
   createSale,
@@ -13,10 +12,10 @@ import type { Client } from "../types/client";
 
 import { useToast } from "../context/toast/useToast";
 import { useAuth } from "../context/auth/useAuth";
-import { canCreateBusinessData, canDeleteOwnData, canEditOwnData } from "../utils/permissions";
+
+import { useBootstrapModal } from "../hooks/useBootstrapModal";
 
 import PageHeader from "../components/common/PageHeader";
-// import SalesFilters from "../components/sales/SalesFilters";
 import SalesKPI from "../components/sales/SalesKPI";
 import SalesPipeline from "../components/sales/SalesPipeline";
 import SalesTable from "../components/sales/SalesTable";
@@ -24,7 +23,11 @@ import SaleForm from "../components/sales/modals/SaleFormModal";
 import SaleDeleteModal from "../components/sales/modals/SaleDeleteModal";
 import ManagerTabs from "../components/common/ManagerTabs";
 
+import { getClientName, getClientProjectType } from "../utils/clientHelpers";
+import { formatShortDate } from "../utils/date";
+import { canCreateBusinessData, canDeleteOwnData, canEditOwnData } from "../utils/permissions";
 import { matchStartSearch } from "../utils/search";
+import { getSaleStatusColor } from "../utils/statusColors";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
@@ -67,38 +70,14 @@ const SalesPage: React.FC = () => {
       clients.map((client) => [client.id, client])
     );
   }, [clients]);
-
-  // ==============================
-  // 🔹 REFS - modales Bootstrap
-  // ==============================
-  const formModalRef = useRef<HTMLDivElement>(null);
-  const deleteModalRef = useRef<HTMLDivElement>(null);
-
-  // ==============================
-  // 🔹 STATE - instances modales
-  // ==============================
-  const [formModal, setFormModal] = useState<Modal | null>(null);
-  const [deleteModal, setDeleteModal] = useState<Modal | null>(null);
-
-  // ==============================
-  // 🔹 EFFECTS - initialisation
-  // ==============================
-
+  
   // Init Bootstrap modals
-  useEffect(() => {
-    if (formModalRef.current) {
-      const modal = new Modal(formModalRef.current, {
-        backdrop: true, 
-        keyboard: true,
-      });
-
-      setFormModal(modal);
-    }
-
-    if (deleteModalRef.current) {
-      setDeleteModal(new Modal(deleteModalRef.current));
-    }
-  }, []);
+  const {
+    formModalRef,
+    deleteModalRef,
+    formModal,
+    deleteModal,
+  } = useBootstrapModal();
 
 // reset quand
   useEffect(() => {
@@ -114,27 +93,27 @@ const SalesPage: React.FC = () => {
     return () => {
       el.removeEventListener("hidden.bs.modal", handleHidden);
     };
-  }, []);
+  }, [formModalRef]);
 
   // Chargement initial (sales + clients)
   useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const [salesData, clientsData] = await Promise.all([
-        getSales(),
-        getClients(),
-      ]);
+    const fetchData = async () => {
+      try {
+        const [salesData, clientsData] = await Promise.all([
+          getSales(),
+          getClients(),
+        ]);
 
-      setSales(salesData);
-      setClients(clientsData);
+        setSales(salesData);
+        setClients(clientsData);
 
-    } catch (error) {
-      console.error("Erreur chargement sales :", error);
-    }
-  };
+      } catch (error) {
+        console.error("Erreur chargement sales :", error);
+      }
+    };
 
-  void fetchData();
-}, []);
+    void fetchData();
+  }, []);
 
   // ==============================
   // 🔹 API - chargement
@@ -142,23 +121,6 @@ const SalesPage: React.FC = () => {
   const loadSales = async () => {
     const data = await getSales();
     setSales(data);
-  };
-  
-  // ==============================
-  // 🔹 HELPERS - utils métier
-  // ==============================
-
-  const getClientName = (clientId: number) => {
-    const client = clientsMap.get(clientId);
-
-    return client
-      ? `${client.name} ${client.firstName}`
-      : "Client inconnu";
-  };
-
-  const getClientProjectType = (clientId: number): string => {
-    const client = clientsMap.get(clientId);
-    return client ? client.projectType : "Non défini";
   };
   
   // ==============================
@@ -195,31 +157,6 @@ const SalesPage: React.FC = () => {
   // Options filtres
   const statuses = Array.from(new Set(sales.map((s) => s.status)));
 
-
-  // ==============================
-  // 🔹 HELPERS - utils UI
-  // ==============================
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "EN_ATTENTE":
-        return "secondary";
-      case "ANNULEE":
-        return "danger";
-      case "TERMINEE":
-        return "success";
-      default:
-        return "secondary";
-    }
-  };
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
-  };
 
   // ==============================
   // 🔹 ACTIONS - CRUD
@@ -335,15 +272,6 @@ const SalesPage: React.FC = () => {
         />
       )}
 
-      {/* FILTRES */}
-      {/* <SalesFilters
-        search={search}
-        setSearch={setSearch}
-        filterStatus={filterStatus}
-        setFilterStatus={setFilterStatus}
-        statuses={statuses}
-      /> */}
-
       <FiltersBar
         search={search}
         setSearch={setSearch}
@@ -381,10 +309,12 @@ const SalesPage: React.FC = () => {
       {view === "table" &&(
       <SalesTable
         filteredSales={displayedSales}
-        getClientName={getClientName}
-        getClientProjectType={getClientProjectType}
-        getStatusColor={getStatusColor}
-        formatDate={formatDate}
+        getClientName={(id) => getClientName(clients, id)}
+        getClientProjectType={(id) =>
+          getClientProjectType(clients, id)
+        }
+        getStatusColor={getSaleStatusColor}
+        formatDate={formatShortDate}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
         canEdit={(sale) => user ? canEditOwnData(user.role, sale.userId, user.id) : false}
@@ -411,7 +341,7 @@ const SalesPage: React.FC = () => {
       <SaleDeleteModal
         sale={saleToDelete}
         modalRef={deleteModalRef}
-        getClientName={getClientName}
+        getClientName={(id) => getClientName(clients, id)}
         onClose={() => deleteModal?.hide()}
         onConfirm={confirmDelete}
        />

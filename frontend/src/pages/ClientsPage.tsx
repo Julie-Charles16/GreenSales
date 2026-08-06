@@ -1,14 +1,13 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type { Client, ClientFormData } from "../types/client";
 import { getClients, createClient, updateClient, deleteClient } from "../services/clientService";
-import { Modal } from "bootstrap";
+
+import { useBootstrapModal } from "../hooks/useBootstrapModal";
 
 import { useAuth } from "../context/auth/useAuth";
-import { canEditOwnData, canDeleteOwnData, canCreateBusinessData} from "../utils/permissions";
 
 import ManagerTabs from "../components/common/ManagerTabs";
 import PageHeader from "../components/common/PageHeader";
-// import ClientsFilters from "../components/clients/ClientsFilters";
 import ClientsKPI from "../components/clients/ClientsKPI";
 import ClientsTable from "../components/clients/ClientsTable";
 import ClientsCards from "../components/clients/ClientsCards";
@@ -17,6 +16,8 @@ import ClientDetailModal from "../components/clients/modals/ClientDetailModal";
 import ClientDeleteModal from "../components/clients/modals/ClientDeleteModal";
 
 import { matchStartSearch } from "../utils/search";
+import { getClientStatusColor, getClientStatusBorderColor} from "../utils/statusColors";
+import { canEditOwnData, canDeleteOwnData, canCreateBusinessData} from "../utils/permissions";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
@@ -49,19 +50,15 @@ const ClientsPage: React.FC = () => {
   const [detailClient, setDetailClient] = useState<Client | null>(null);
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
   const { showToast } = useToast();
-  // ==============================
-  // 🔹 REFS - modales Bootstrap
-  // ==============================
-  const formModalRef = useRef<HTMLDivElement>(null);
-  const detailModalRef = useRef<HTMLDivElement>(null);
-  const deleteModalRef = useRef<HTMLDivElement>(null);
-  
-  // ==============================
-  // 🔹 STATE - instances modales
-  // ==============================
-  const [formModal, setFormModal] = useState<Modal | null>(null);
-  const [detailModal, setDetailModal] = useState<Modal | null>(null);
-  const [deleteModal, setDeleteModal] = useState<Modal | null>(null);
+
+  const {
+    formModalRef,
+    detailModalRef,
+    deleteModalRef,
+    formModal,
+    detailModal,
+    deleteModal,
+  } = useBootstrapModal();
 
   // ==============================
   // 🔹 API - chargement
@@ -79,19 +76,6 @@ const ClientsPage: React.FC = () => {
   // ==============================
   // 🔹 EFFECTS - initialisation
   // ==============================
-
-  // Init Bootstrap modals
-  useEffect(() => {
-    if (formModalRef.current) {
-      setFormModal(new Modal(formModalRef.current));
-    }
-    if (detailModalRef.current) {
-      setDetailModal(new Modal(detailModalRef.current));
-    }
-    if (deleteModalRef.current) {
-      setDeleteModal(new Modal(deleteModalRef.current));
-    }
-  }, []);
 
   // Chargement initial des clients
   useEffect(() => {
@@ -143,32 +127,6 @@ const ClientsPage: React.FC = () => {
     () => Array.from(new Set(clients.map(c => c.status))),
     [clients]
   );
-
-  // ==============================
-  // 🔹 HELPERS - utils UI
-  // ==============================
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "PROSPECT": return "secondary";
-      case "NEGOCIATION": return "warning";
-      case "DEVIS_ENVOYE": return "info";
-      case "SIGNE": return "success";
-      case "PERDU": return "danger";
-      default: return "secondary";
-    }
-  };
-
-  const getStatusBorderColor = (status: string) => {
-    switch (getStatusColor(status)) {
-      case "success": return "#20c997";
-      case "danger": return "#fa5252";
-      case "warning": return "#f59f00";
-      case "info": return "#339af0";
-      default: return "#adb5bd";
-    }
-  };
-
 
   // ==============================
   // 🔹 ACTIONS - CRUD
@@ -301,17 +259,6 @@ const ClientsPage: React.FC = () => {
       )}
 
       {/* FILTRES */}
-      {/* <ClientsFilters
-        search={search}
-        setSearch={setSearch}
-        filterCity={filterCity}
-        setFilterCity={setFilterCity}
-        filterStatus={filterStatus}
-        setFilterStatus={setFilterStatus}
-        cities={cities}
-        statuses={statuses}
-      /> */}
-
       <FiltersBar
         search={search}
         setSearch={setSearch}
@@ -344,8 +291,8 @@ const ClientsPage: React.FC = () => {
       {view === "table" && (
       <ClientsTable
         clients={displayedClients}
-        getStatusColor={getStatusColor}
-        getStatusBorderColor={getStatusBorderColor}
+        getStatusColor={getClientStatusColor}
+        getStatusBorderColor={getClientStatusBorderColor}
         onView={handleViewDetail}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
@@ -376,14 +323,14 @@ const ClientsPage: React.FC = () => {
       {headerConfig.views.some(v => v.value === "cards") &&
       view === "cards" && (
         <ClientsCards
-        clients={displayedClients}
-        getStatusColor={getStatusColor}
-        getStatusBorderColor={getStatusBorderColor}
-        onView={handleViewDetail}
-        onEdit={handleEdit}
-        onDelete={handleDeleteClick}
-        canEdit={(client) => user ? canEditOwnData(user.role, client.userId, user.id) : false}
-        canDelete={(client) => user ? canDeleteOwnData(user.role, client.userId, user.id) : false}
+          clients={displayedClients}
+          getStatusColor={getClientStatusColor}
+          getStatusBorderColor={getClientStatusBorderColor}
+          onView={handleViewDetail}
+          onEdit={handleEdit}
+          onDelete={handleDeleteClick}
+          canEdit={(client) => user ? canEditOwnData(user.role, client.userId, user.id) : false}
+          canDelete={(client) => user ? canDeleteOwnData(user.role, client.userId, user.id) : false}
         />
       )}
 
@@ -406,7 +353,7 @@ const ClientsPage: React.FC = () => {
         client={detailClient}
         modalRef={detailModalRef}
         onClose={handleCloseDetail}
-        getStatusColor={getStatusColor}
+        getStatusColor={getClientStatusColor}
       />
 
       {/* 🔥 MODAL DELETE */}
