@@ -70,7 +70,13 @@ const SalesPage: React.FC = () => {
       clients.map((client) => [client.id, client])
     );
   }, [clients]);
+
+  const clientHelpers = useMemo(() => ({
+    getName: (id: number) => getClientName(clients, id),
+    getProjectType: (id: number) => getClientProjectType(clients, id),
+  }), [clients]);
   
+
   // Init Bootstrap modals
   const {
     formModalRef,
@@ -147,23 +153,25 @@ const SalesPage: React.FC = () => {
       return filteredSales;
     }
 
-    return filteredSales.filter((sales) =>
+    return filteredSales.filter((sale) =>
       activeTab === "mine"
-        ? sales.userId === user.id
-        : sales.userId !== user.id
+        ? sale.userId === user.id
+        : sale.userId !== user.id
     );
   }, [filteredSales, activeTab, user]);
 
   // Options filtres
-  const statuses = Array.from(new Set(sales.map((s) => s.status)));
-
+  const statuses = useMemo(
+    () => Array.from(new Set(sales.map((s) => s.status))),
+    [sales]
+  );
 
   // ==============================
   // 🔹 ACTIONS - CRUD
   // ==============================
 
   const handleAdd = () => {
-    if (!user || !canCreateBusinessData(user.role)) return;
+    if (!canCreate) return;
     setEditingSale(null);
     formModal?.show();
   };
@@ -184,7 +192,7 @@ const SalesPage: React.FC = () => {
         variant: "info",
       }); 
     } else {
-      if (!canCreateBusinessData(user.role)) return;
+      if (!canCreate) return;
       await createSale(data);
       showToast({
         message: "Vente ajoutée !",
@@ -309,10 +317,8 @@ const SalesPage: React.FC = () => {
       {view === "table" &&(
       <SalesTable
         filteredSales={displayedSales}
-        getClientName={(id) => getClientName(clients, id)}
-        getClientProjectType={(id) =>
-          getClientProjectType(clients, id)
-        }
+        getClientName={clientHelpers.getName}
+        getClientProjectType={clientHelpers.getProjectType}
         getStatusColor={getSaleStatusColor}
         formatDate={formatShortDate}
         onEdit={handleEdit}
@@ -341,7 +347,7 @@ const SalesPage: React.FC = () => {
       <SaleDeleteModal
         sale={saleToDelete}
         modalRef={deleteModalRef}
-        getClientName={(id) => getClientName(clients, id)}
+        getClientName={clientHelpers.getName}
         onClose={() => deleteModal?.hide()}
         onConfirm={confirmDelete}
        />

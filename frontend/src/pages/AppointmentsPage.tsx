@@ -66,6 +66,12 @@ const AppointmentsPage: React.FC = () => {
     );
   }, [clients]);
 
+  const clientHelpers = useMemo(() => ({
+    getName: (id: number) => getClientName(clients, id),
+    getAddress: (id: number) => getClientAddress(clients, id),
+    getProjectType: (id: number) => getClientProjectType(clients, id),
+  }), [clients]);
+
   const {
     formModalRef,
     deleteModalRef,
@@ -115,8 +121,11 @@ const AppointmentsPage: React.FC = () => {
   };
 
   // STATUSES
-  const statuses = Array.from(new Set(appointments.map((a) => a.status)));
-
+  const statuses = useMemo(
+    () => Array.from(new Set(appointments.map((a) => a.status))),
+    [appointments]
+  );
+  
   // FILTRE
   const filteredAppointments = useMemo(() => {
     return appointments
@@ -160,7 +169,7 @@ const AppointmentsPage: React.FC = () => {
   };
 
   const handleDateClick = (date: string) => {
-    if (!user || !canCreateBusinessData(user.role)) return;
+    if (!user || !canCreate) return;
     const formattedDate = new Date(date);
     formattedDate.setHours(9, 0, 0, 0);
 
@@ -223,8 +232,7 @@ const AppointmentsPage: React.FC = () => {
   };
   
   const handleAdd = () => {
-    if (!user || !canCreateBusinessData(user.role)) return;
-
+    if (!user || !canCreate) return;
     setEditing({
       id: 0,
       date: new Date().toISOString().slice(0, 16),
@@ -323,10 +331,11 @@ const AppointmentsPage: React.FC = () => {
         <AppointmentCalendar
           appointments={displayedAppointments}
           clients={clients}
-          getClientName={(id) => getClientName(clients, id)}          onEventClick={handleEventClick}
+          getClientName={clientHelpers.getName}
+          onEventClick={handleEventClick}
           onDateClick={handleDateClick}
           canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
-          canCreate={user ? canCreateBusinessData(user.role) : false}
+          canCreate={canCreate}
         />
       )}
 
@@ -335,9 +344,9 @@ const AppointmentsPage: React.FC = () => {
       <AppointmentsTable
         appointments={displayedAppointments}
         clients={clients}
-        getClientName={(id) => getClientName(clients, id)} 
-        getClientProjectType={(id) => getClientProjectType(clients, id)}
-        getClientAddress={(id) => getClientAddress(clients, id)}
+        getClientName={clientHelpers.getName}
+        getClientProjectType={clientHelpers.getProjectType}
+        getClientAddress={clientHelpers.getAddress}
         getStatusColor={getAppointmentStatusColor}
         getStatusBorderColor={getAppointmentStatusBorderColor}
         formatDate={formatDateTime}
@@ -354,9 +363,9 @@ const AppointmentsPage: React.FC = () => {
         <AppointmentsCards
           appointments={displayedAppointments}
           clients={clients}
-          getClientName={(id) => getClientName(clients, id)}
-          getClientAddress={(id) =>getClientAddress(clients, id)}
-          getClientProjectType={(id) =>getClientProjectType(clients, id)}
+          getClientName={clientHelpers.getName}
+          getClientAddress={clientHelpers.getAddress}
+          getClientProjectType={clientHelpers.getProjectType}
           getStatusColor={getAppointmentStatusColor}
           getStatusBorderColor={getAppointmentStatusBorderColor}
           formatDate={formatDateTime}
@@ -390,7 +399,7 @@ const AppointmentsPage: React.FC = () => {
         modalRef={deleteModalRef}
         onClose={() => deleteModal?.hide()}
         onConfirm={confirmDelete}
-        getClientName={(id) => getClientName(clients, id)}
+        getClientName={clientHelpers.getName}
       />      
     </div>
   );

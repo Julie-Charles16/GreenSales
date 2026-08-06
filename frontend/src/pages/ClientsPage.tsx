@@ -28,6 +28,28 @@ const ClientsPage: React.FC = () => {
 
   const { user } = useAuth();
 
+  const canCreate = user
+  ? canCreateBusinessData(user.role)
+  : false;
+
+const canEdit = (client: Client) =>
+  user
+    ? canEditOwnData(
+        user.role,
+        client.userId,
+        user.id
+      )
+    : false;
+
+const canDelete = (client: Client) =>
+  user
+    ? canDeleteOwnData(
+        user.role,
+        client.userId,
+        user.id
+      )
+    : false;
+
   const isAdmin = user?.role === "ADMIN";
   // ==============================
   // 🔹 STATE - données principales
@@ -241,11 +263,7 @@ const ClientsPage: React.FC = () => {
         view={view}
         setView={setView}
         onAdd={handleAdd}
-        canCreate={
-          user
-            ? canCreateBusinessData(user.role)
-            : false
-        }
+        canCreate={canCreate}
         addIcon="bi-person-plus"
       />
 
@@ -296,26 +314,8 @@ const ClientsPage: React.FC = () => {
         onView={handleViewDetail}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
-
-        canEdit={(client) =>
-          user
-            ? canEditOwnData(
-                user.role,
-                client.userId,
-                user.id
-              )
-            : false
-        }
-
-        canDelete={(client) =>
-          user
-            ? canDeleteOwnData(
-                user.role,
-                client.userId,
-                user.id
-              )
-            : false
-        }
+        canEdit={canEdit}
+        canDelete={canDelete}
       />
       )}
       
@@ -329,8 +329,8 @@ const ClientsPage: React.FC = () => {
           onView={handleViewDetail}
           onEdit={handleEdit}
           onDelete={handleDeleteClick}
-          canEdit={(client) => user ? canEditOwnData(user.role, client.userId, user.id) : false}
-          canDelete={(client) => user ? canDeleteOwnData(user.role, client.userId, user.id) : false}
+          canEdit={canEdit}
+          canDelete={canDelete}
         />
       )}
 
