@@ -2,6 +2,9 @@ import React from "react";
 import type { Sale } from "../../types/sale";
 import type { Client } from "../../types/client";
 
+import { getClientName, getClientProjectType } from "../../utils/clientHelpers";
+import { formatShortDate } from "../../utils/date";
+
 type Props = {
   sales: Sale[];
   clients: Client[];
@@ -21,15 +24,15 @@ const SalesPipeline: React.FC<Props> = ({
 }) => {
   const statuses = Array.from(new Set(sales.map((s) => s.status)));
 
-  const getClientName = (clientId: number) => {
-    const client = clients.find((c) => c.id === clientId);
-    return client ? `${client.name} ${client.firstName}` : "Client inconnu";
-  };
+  // const getClientName = (clientId: number) => {
+  //   const client = clients.find((c) => c.id === clientId);
+  //   return client ? `${client.name} ${client.firstName}` : "Client inconnu";
+  // };
 
-  const getProject = (clientId: number) => {
-    const client = clients.find((c) => c.id === clientId);
-    return client?.projectType || "Non défini";
-  };
+  // const getProject = (clientId: number) => {
+  //   const client = clients.find((c) => c.id === clientId);
+  //   return client?.projectType || "Non défini";
+  // };
 
   const getTotalByStatus = (status: string) => {
     return sales
@@ -37,13 +40,13 @@ const SalesPipeline: React.FC<Props> = ({
       .reduce((acc, s) => acc + s.amount, 0);
   };
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("fr-FR", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-    });
-  };
+  // const formatDate = (date: string) => {
+  //   return new Date(date).toLocaleDateString("fr-FR", {
+  //       day: "2-digit",
+  //       month: "long",
+  //       year: "numeric",
+  //   });
+  // };
 
   const getColumnColor = (status: string) => {
   switch (status) {
@@ -113,11 +116,11 @@ const getCommissionByStatus = (status: string) => {
                   className="card border-0 shadow-sm rounded-4 p-4"
                 >
                   <div className="fw-bold fs-6 mb-1">
-                    {getClientName(sale.clientId)}
+                    {getClientName(clients, sale.clientId)}
                   </div>
 
                   <small className="text-muted d-block mb-2">
-                    {getProject(sale.clientId)}
+                    {getClientProjectType(clients, sale.clientId)}
                   </small>
 
                   <div className="d-flex justify-content-between align-items-center mt-2">
@@ -131,7 +134,7 @@ const getCommissionByStatus = (status: string) => {
                   </div>
 
                   <small className="text-muted d-block mt-2">
-                    {formatDate(sale.signedAt)}
+                    {formatShortDate(sale.signedAt)}
                   </small>
 
                   {/* ACTIONS */}

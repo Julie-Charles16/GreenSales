@@ -6,13 +6,13 @@ import interactionPlugin from "@fullcalendar/interaction";
 import frLocale from "@fullcalendar/core/locales/fr";
 
 import type { Appointment } from "../../types/appointment";
-import type { Client } from "../../types/client";
 import { Tooltip } from "bootstrap";
 
 interface Props {
   appointments: Appointment[];
-  clients: Client[];
   getClientName: (id: number) => string;
+  getClientProjectType: (id: number) => string;
+  getClientAddress: (id: number) => string;
   onEventClick: (appt: Appointment) => void;
   onDateClick: (date: string) => void;
   canEdit: (appt: Appointment) => boolean;
@@ -27,8 +27,9 @@ type EventExtendedProps = {
 
 const AppointmentCalendar: React.FC<Props> = ({
   appointments,
-  clients,
   getClientName,
+  getClientAddress,
+  getClientProjectType,
   onEventClick,
   onDateClick,
   canEdit,
@@ -39,21 +40,17 @@ const AppointmentCalendar: React.FC<Props> = ({
     text?.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
   // 🔹 transformation des RDV en events FullCalendar
-  const events = appointments.map((appt) => {
-    const client = clients.find((c) => c.id === appt.clientId);
+  const events = appointments.map((appt) => ({
+    id: appt.id.toString(),
+    title: getClientName(appt.clientId),
+    start: appt.date,
 
-    return {
-      id: appt.id.toString(),
-      title: getClientName(appt.clientId),
-      start: appt.date,
-
-      extendedProps: {
-        comment: appt.comment,
-        projectType: client?.projectType || "Non défini",
-        address: client?.address || "Non renseignée",
-      },
-    };
-  });
+    extendedProps: {
+      comment: appt.comment,
+      projectType: getClientProjectType(appt.clientId),
+      address: getClientAddress(appt.clientId),
+    },
+  }));
 
   return (
     <div className="card shadow-sm mt-4">

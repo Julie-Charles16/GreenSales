@@ -1,4 +1,5 @@
 import type { Sale } from "../../types/sale";
+import { getSaleStatusBorderColor } from "../../utils/statusColors";
 // import type { Client } from "../../types/client";
 
 interface Props {
@@ -46,13 +47,7 @@ const SalesTable: React.FC<Props> = ({
                 key={sale.id}
                 className="table-row-hover"
                 style={{
-                  borderLeft: `4px solid ${
-                    sale.status === "TERMINEE"
-                      ? "#20c997"
-                      : sale.status === "ANNULEE"
-                      ? "#fa5252"
-                      : "#adb5bd"
-                  }`,
+                  borderLeft: `4px solid ${getSaleStatusBorderColor(sale.status)}`,
                 }}
               >            
                   <td>

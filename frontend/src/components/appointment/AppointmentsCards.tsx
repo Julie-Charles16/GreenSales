@@ -5,7 +5,7 @@ interface Props {
   appointments: Appointment[];
   clients: Client[];
   getClientName: (clientId: number) => string;
-  getClientAddress: (clientId: number) => string,
+  getClientAddress: (clientId: number) => string;
   getClientProjectType: (clientId: number) => string;
   getStatusColor: (status: string) => string;
   getStatusBorderColor: (status: string) => string;

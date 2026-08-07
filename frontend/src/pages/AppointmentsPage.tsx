@@ -330,11 +330,16 @@ const AppointmentsPage: React.FC = () => {
       viewMode === "calendar" && (
         <AppointmentCalendar
           appointments={displayedAppointments}
-          clients={clients}
           getClientName={clientHelpers.getName}
+          getClientProjectType={clientHelpers.getProjectType}
+          getClientAddress={clientHelpers.getAddress}
           onEventClick={handleEventClick}
           onDateClick={handleDateClick}
-          canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
+          canEdit={(appointment) =>
+            user
+              ? canEditOwnData(user.role, appointment.userId, user.id)
+              : false
+          }
           canCreate={canCreate}
         />
       )}
