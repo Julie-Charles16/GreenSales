@@ -1,5 +1,6 @@
 import type { Appointment } from "../../types/appointment";
 import type { Client } from "../../types/client";
+import UserBadge from "../common/UserBadge";
 
 interface Props {
   appointments: Appointment[];
@@ -14,6 +15,7 @@ interface Props {
   onDelete: (appt: Appointment) => void;
   canEdit: (appt: Appointment) => boolean;
   canDelete: (appt: Appointment) => boolean;
+  showCommercial: boolean;
 }
 
 const AppointmentsTable: React.FC<Props> = ({
@@ -28,6 +30,7 @@ const AppointmentsTable: React.FC<Props> = ({
   onDelete,
   canEdit,
   canDelete,
+  showCommercial,
 }) => {
   const hasActions = appointments.some((appointment) => canEdit(appointment) || canDelete(appointment));
   return (
@@ -36,6 +39,7 @@ const AppointmentsTable: React.FC<Props> = ({
         <table className="table table-hover align-middle">
           <thead>
             <tr>
+              {showCommercial && <th>Commercial</th>}
               <th>Client</th>
               <th>Date</th>
               <th>Adresse</th>
@@ -53,6 +57,17 @@ const AppointmentsTable: React.FC<Props> = ({
                   borderLeft: `4px solid ${getStatusBorderColor(appt.status)}`,
                 }}
               >
+
+                {showCommercial && (
+                  <td>
+                    {appt.user && (
+                      <UserBadge
+                        pseudo={appt.user.pseudo}
+                        role={appt.user.role}
+                      />
+                    )}
+                  </td>
+                )}       
                 {/* Client */}
                 <td>
                   <div className="fw-semibold">

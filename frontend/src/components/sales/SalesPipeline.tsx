@@ -5,6 +5,8 @@ import type { Client } from "../../types/client";
 import { getClientName, getClientProjectType } from "../../utils/clientHelpers";
 import { formatShortDate } from "../../utils/date";
 
+import UserBadge from "../common/UserBadge";
+
 type Props = {
   sales: Sale[];
   clients: Client[];
@@ -12,6 +14,7 @@ type Props = {
   onDelete: (sale: Sale) => void;
   canEdit: (sale: Sale) => boolean;
   canDelete: (sale: Sale) => boolean;
+  showCommercial: boolean;
 };
 
 const SalesPipeline: React.FC<Props> = ({
@@ -21,6 +24,7 @@ const SalesPipeline: React.FC<Props> = ({
   onDelete,
   canEdit,
   canDelete,
+  showCommercial,
 }) => {
   const statuses = Array.from(new Set(sales.map((s) => s.status)));
 
@@ -122,6 +126,16 @@ const getCommissionByStatus = (status: string) => {
                   <small className="text-muted d-block mb-2">
                     {getClientProjectType(clients, sale.clientId)}
                   </small>
+
+                  {showCommercial && sale.user && (
+                    <div className="mb-2">
+                      <UserBadge
+                        pseudo={sale.user.pseudo}
+                        role={sale.user.role}
+                      />
+                    </div>
+                  )}
+
 
                   <div className="d-flex justify-content-between align-items-center mt-2">
                     <span className="fw-semibold fs-5">

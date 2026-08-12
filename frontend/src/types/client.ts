@@ -1,3 +1,4 @@
+import type { Role } from "./user";
 export interface Client {
   id: number;
   name: string;
@@ -10,6 +11,13 @@ export interface Client {
   projectType: string;
   status: string;
   userId: number;
+
+  user?: {
+    id: number;
+    pseudo: string;
+    role: Role;
+  };
+
   createdAt?: string;
 }
 

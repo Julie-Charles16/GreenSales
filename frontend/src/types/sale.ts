@@ -1,3 +1,5 @@
+import type { Role } from "./user";
+
 export type SaleStatus = "EN_ATTENTE" | "ANNULEE" | "TERMINEE";
 
 export interface Sale {
@@ -12,6 +14,7 @@ export interface Sale {
   user?: {
     id: number;
     pseudo: string;
+    role: Role;
   };
 
   client?: {

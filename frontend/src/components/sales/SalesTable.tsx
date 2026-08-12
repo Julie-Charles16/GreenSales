@@ -1,6 +1,7 @@
 import type { Sale } from "../../types/sale";
 import { getSaleStatusBorderColor } from "../../utils/statusColors";
 // import type { Client } from "../../types/client";
+import UserBadge from "../common/UserBadge";
 
 interface Props {
     filteredSales: Sale[];
@@ -12,6 +13,7 @@ interface Props {
     onDelete: (sale: Sale) => void;
     canEdit: (sale: Sale) => boolean;
     canDelete: (sale: Sale) => boolean;
+    showCommercial: boolean;
 }
 
 const SalesTable: React.FC<Props> = ({
@@ -24,6 +26,7 @@ const SalesTable: React.FC<Props> = ({
     onDelete,
     canEdit,
     canDelete,
+    showCommercial,
 }) => {
     const hasActions = filteredSales.some((sale) => canEdit(sale) || canDelete(sale));
     return (
@@ -32,6 +35,7 @@ const SalesTable: React.FC<Props> = ({
           <table className="table table-hover align-middle">
             <thead>
               <tr>
+                {showCommercial && <th>Commercial</th>}
                 <th>Client</th>
                 <th>Montant</th>
                 <th>Commission</th>
@@ -49,7 +53,17 @@ const SalesTable: React.FC<Props> = ({
                 style={{
                   borderLeft: `4px solid ${getSaleStatusBorderColor(sale.status)}`,
                 }}
-              >            
+              >     
+                {showCommercial && (
+                  <td>
+                    {sale.user && (
+                      <UserBadge
+                        pseudo={sale.user.pseudo}
+                        role={sale.user.role}
+                      />
+                    )}
+                  </td>
+                )}       
                   <td>
                     <div className="fw-semibold">
                       {getClientName(sale.clientId)}

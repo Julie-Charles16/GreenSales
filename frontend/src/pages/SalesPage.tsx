@@ -257,6 +257,8 @@ const SalesPage: React.FC = () => {
         ],
   };
 
+  const showCommercial = user?.role === "MANAGER" && activeTab === "team";
+
   return (
     <div className="container mt-4">
       {/* HEADER */}
@@ -310,6 +312,7 @@ const SalesPage: React.FC = () => {
           onDelete={handleDeleteClick}
           canEdit={(sale) => user ? canEditOwnData(user.role, sale.userId, user.id) : false}
           canDelete={(sale) => user ? canDeleteOwnData(user.role, sale.userId, user.id) : false}
+          showCommercial={showCommercial}
         />
       )}
       
@@ -325,6 +328,7 @@ const SalesPage: React.FC = () => {
         onDelete={handleDeleteClick}
         canEdit={(sale) => user ? canEditOwnData(user.role, sale.userId, user.id) : false}
         canDelete={(sale) => user ? canDeleteOwnData(user.role, sale.userId, user.id) : false}
+        showCommercial={showCommercial}
       />
       )}
 

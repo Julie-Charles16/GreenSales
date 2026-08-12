@@ -161,6 +161,9 @@ const AppointmentsPage: React.FC = () => {
     );
   }, [filteredAppointments, activeTab, user]);
 
+  const showCommercial = user?.role === "MANAGER" && activeTab === "team";
+
+
   // actions calendrier
   const handleEventClick = (appt: Appointment) => {
     if (!user || !canEditOwnData(user.role, appt.userId, user.id)) return;
@@ -341,6 +344,7 @@ const AppointmentsPage: React.FC = () => {
               : false
           }
           canCreate={canCreate}
+          showCommercial={showCommercial}
         />
       )}
 
@@ -359,6 +363,7 @@ const AppointmentsPage: React.FC = () => {
         onDelete={handleTableDelete}
         canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
         canDelete={(appointment) => user ? canDeleteOwnData(user.role, appointment.userId, user.id) : false}
+        showCommercial={showCommercial}
       />
       )}
 
@@ -378,6 +383,7 @@ const AppointmentsPage: React.FC = () => {
           onDelete={handleTableDelete}
           canEdit={(appointment) => user ? canEditOwnData(user.role, appointment.userId, user.id) : false}
           canDelete={(appointment) => user ? canDeleteOwnData(user.role, appointment.userId, user.id) : false}
+          showCommercial={showCommercial}
         />
       )}
 

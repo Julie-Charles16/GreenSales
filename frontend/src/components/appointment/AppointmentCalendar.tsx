@@ -17,12 +17,15 @@ interface Props {
   onDateClick: (date: string) => void;
   canEdit: (appt: Appointment) => boolean;
   canCreate: boolean;
+  showCommercial: boolean;
 }
 
 type EventExtendedProps = {
   comment?: string;
   projectType?: string;
   address?: string;
+  commercial?: string;
+
 };
 
 const AppointmentCalendar: React.FC<Props> = ({
@@ -34,6 +37,7 @@ const AppointmentCalendar: React.FC<Props> = ({
   onDateClick,
   canEdit,
   canCreate,
+  showCommercial,
 }) => {
   // 🔹 sécurisation HTML (anti injection)
   const safe = (text?: string) =>
@@ -49,6 +53,7 @@ const AppointmentCalendar: React.FC<Props> = ({
       comment: appt.comment,
       projectType: getClientProjectType(appt.clientId),
       address: getClientAddress(appt.clientId),
+      commercial: appt.user?.pseudo,
     },
   }));
 
@@ -105,6 +110,13 @@ const AppointmentCalendar: React.FC<Props> = ({
               year: "numeric",
             });
 
+            const commercialLine =
+              showCommercial && info.event.extendedProps.commercial
+                ? `<div><i class="bi bi-person me-1 text-info"></i> ${safe(
+                    info.event.extendedProps.commercial
+                  )}</div>`
+                : "";
+
             const tooltipContent = `
               <div class="d-flex flex-column gap-1">
                 <strong class="mb-1">${safe(info.event.title)}</strong>
@@ -112,6 +124,9 @@ const AppointmentCalendar: React.FC<Props> = ({
                 <div><i class="bi bi-calendar-event me-1 text-primary"></i> ${formattedDate}</div>
                 <div><i class="bi bi-geo-alt me-1 text-danger"></i> ${safe(address)}</div>
                 <div><i class="bi bi-briefcase me-1 text-warning"></i> ${safe(projectType)}</div>
+
+                ${commercialLine}
+                
                 <div><i class="bi bi-chat-left-text me-1 text-secondary"></i> ${
                   safe(comment) || "Pas de commentaire"
                 }</div>

@@ -38,6 +38,15 @@ const getTeamClients = (managerId) => {
         managerId,
       },
     },
+    include: {
+      user: {
+        select: {
+          id: true,
+          pseudo: true,
+          role: true,
+        },
+      },
+    },
   });
 };
 

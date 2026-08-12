@@ -1,5 +1,7 @@
 import type { Appointment } from "../../types/appointment";
 import type { Client } from "../../types/client";
+import UserBadge from "../common/UserBadge";
+
 
 interface Props {
   appointments: Appointment[];
@@ -14,6 +16,7 @@ interface Props {
   onDelete: (appt: Appointment) => void;
   canEdit: (appt: Appointment) => boolean;
   canDelete: (appt: Appointment) => boolean;
+  showCommercial: boolean;
 }
 
 const AppointmentsCards: React.FC<Props> = ({
@@ -28,6 +31,7 @@ const AppointmentsCards: React.FC<Props> = ({
   onDelete,
   canEdit,
   canDelete,
+  showCommercial,
 }) => {
   return (
     <div className="row mt-4">
@@ -49,6 +53,14 @@ const AppointmentsCards: React.FC<Props> = ({
                 <small className="text-muted">
                   {getClientProjectType(appt.clientId)}
                 </small>
+                {showCommercial && appt.user && (
+                  <div className="mt-2 mb-2">
+                    <UserBadge
+                      pseudo={appt.user.pseudo}
+                      role={appt.user.role}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* DATE */}

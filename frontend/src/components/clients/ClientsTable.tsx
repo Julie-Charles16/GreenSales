@@ -1,4 +1,6 @@
 import type { Client } from "../../types/client";
+import UserBadge from "../common/UserBadge";
+
 interface Props {
   clients: Client[];
   getStatusColor: (status: string) => string;
@@ -9,6 +11,7 @@ interface Props {
 
   canEdit: (client: Client) => boolean;
   canDelete: (client: Client) => boolean;
+  showCommercial: boolean;
 }
 
 const ClientsTable: React.FC<Props> = ({
@@ -20,6 +23,7 @@ const ClientsTable: React.FC<Props> = ({
   onDelete,
   canEdit,
   canDelete,
+  showCommercial,
 }) => {
   const hasActions = clients.some(
   (client) => canEdit(client) || canDelete(client)
@@ -31,6 +35,7 @@ const ClientsTable: React.FC<Props> = ({
         <table className="table table-hover align-middle">
           <thead>
             <tr>
+              {showCommercial && <th>Commercial</th>}
               <th>Client</th>
               <th>Email</th>
               <th>Ville</th>
@@ -40,15 +45,28 @@ const ClientsTable: React.FC<Props> = ({
           </thead>
 
           <tbody>
+
             {clients.map((client) => (
               <tr
-                key={client.id}
-                className="table-row-hover"
-                style={{
-                  borderLeft: `4px solid ${getStatusBorderColor(client.status)}`
-                }}
-                onClick={() => onView(client)}
+              key={client.id}
+              className="table-row-hover"
+              style={{
+                borderLeft: `4px solid ${getStatusBorderColor(client.status)}`
+              }}
+              onClick={() => onView(client)}
               >
+
+                {showCommercial && (
+                  <td>
+                    {client.user && (
+                      <UserBadge
+                        pseudo={client.user.pseudo}
+                        role={client.user.role}
+                      />
+                    )}
+                  </td>
+                )}
+
                 {/* Nom */}
                 <td>
                   <div className="fw-semibold">
