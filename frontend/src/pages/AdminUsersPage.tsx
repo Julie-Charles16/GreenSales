@@ -6,6 +6,9 @@ import type { AdminUser, Role } from "../types/user";
 import { roleConfig } from "../utils/roleConfig";
 import RoleBadge from "../components/common/RoleBadge";
 
+import PageHeader from "../components/common/PageHeader";
+import UsersKPI from "../components/common/UsersKPI";
+
 
 const roles: Role[] = ["COMMERCIAL", "MANAGER", "ADMIN"];
 
@@ -109,12 +112,12 @@ const AdminUsersPage = () => {
 
   return (
     <div className="container mt-4">
-      <div className="mb-4">
-        <h2 className="fw-bold">Utilisateurs</h2>
-        <small className="text-muted">
-          Gérez les comptes, les rôles et l'organisation des équipes commerciales.
-        </small>
-      </div>
+      <PageHeader
+        title="Utilisateurs"
+        subtitle="Gérez les comptes, les rôles et l'organisation des équipes commerciales."
+      />
+
+      <UsersKPI users={users} />
 
       {error && <div className="alert alert-danger">{error}</div>}
 

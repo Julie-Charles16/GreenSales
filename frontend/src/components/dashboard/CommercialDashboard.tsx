@@ -1,8 +1,9 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import type { Client } from "../../types/client";
 import type { Sale } from "../../types/sale";
 import type { Appointment } from "../../types/appointment";
 
+import PageHeader from "../common/PageHeader";
 import MetricCard from "../common/MetricCard";
 import AppointmentsChart from "./charts/commercial/AppointmentsChart";
 import SalesPipelineChart from "./charts/commercial/SalesPipelineChart";
@@ -24,6 +25,9 @@ const CommercialDashboard = ({
   appointments,
   currentUserId,
 }: Props) => {
+
+  const navigate = useNavigate();
+
   const ownClients = clients.filter(
     (client) => client.userId === currentUserId
   );
@@ -39,27 +43,24 @@ const CommercialDashboard = ({
   return (
     <>
       {/* <div className="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4"> */}
-      <div className="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
-        <div>
-          <h1 className="mb-1">Mon activité commerciale</h1>
-
-          <p className="text-muted mb-0">
-            Gardez un œil sur vos prospects, rendez-vous et ventes.
-          </p>
-        </div>
-
-        <div className="d-flex gap-2">
-          <Link className="btn btn-outline-primary" to="/clients">
-            <i className="bi bi-person-plus me-2" />
-            Nouveau client
-          </Link>
-
-          <Link className="btn btn-primary" to="/appointments">
-            <i className="bi bi-calendar-plus me-2" />
-            Nouveau RDV
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        title="Mon activité commerciale"
+        subtitle="Gardez un œil sur vos prospects, rendez-vous et ventes."
+        actions={[
+          {
+            label: "Nouveau client",
+            icon: "bi-person-plus",
+            variant: "btn-outline-primary",
+            onClick: () => navigate("/clients"),
+          },
+          {
+            label: "Nouveau RDV",
+            icon: "bi-calendar-plus",
+            variant: "btn-primary",
+            onClick: () => navigate("/appointments"),
+          },
+        ]}
+      />
 
       <div className="row g-2 mb-6">
 

@@ -3,18 +3,22 @@ interface ViewOption<T extends string> {
   label: string;
 }
 
+interface HeaderAction {
+  label: string;
+  icon?: string;
+  onClick: () => void;
+  variant?: string;
+}
+
 interface Props<T extends string> {
   title: string;
   subtitle: string;
 
-  view: T;
-  setView: (view: T) => void;
+  view?: T;
+  setView?: (view: T) => void;
+  views?: ViewOption<T>[];
 
-  views: ViewOption<T>[];
-
-  onAdd: () => void;
-  canCreate: boolean;
-  addIcon?: string;
+  actions?: HeaderAction[];
 }
 
 const PageHeader = <T extends string>({
@@ -22,10 +26,8 @@ const PageHeader = <T extends string>({
   subtitle,
   view,
   setView,
-  views,
-  onAdd,
-  canCreate,
-  addIcon = "bi-plus",
+  views = [],
+  actions = [],
 }: Props<T>) => {
   return (
     <div className="d-flex justify-content-between align-items-center mb-4">
@@ -40,41 +42,46 @@ const PageHeader = <T extends string>({
         </small>
       </div>
 
+      {(
+        (views.length > 1 && view && setView) ||
+        actions.length > 0
+      ) && (
+        <div className="d-flex gap-2">
 
-      <div className="d-flex gap-2">
+          {views.length > 1 && view && setView && (
+            <div className="btn-group">
+              {views.map((item) => (
+                <button
+                  key={item.value}
+                  className={`btn ${
+                    view === item.value
+                      ? "btn-dark"
+                      : "btn-outline-dark"
+                  }`}
+                  onClick={() => setView(item.value)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
 
-        {views.length > 1 && (
-          <div className="btn-group">
+          {actions.map((action) => (
+            <button
+              key={action.label}
+              className={`btn ${action.variant ?? "btn-dark"}`}
+              onClick={action.onClick}
+            >
+              {action.icon && (
+                <i className={`bi ${action.icon} me-2`}></i>
+              )}
 
-            {views.map((item) => (
-              <button
-                key={item.value}
-                className={`btn ${
-                  view === item.value
-                    ? "btn-dark"
-                    : "btn-outline-dark"
-                }`}
-                onClick={() => setView(item.value)}
-              >
-                {item.label}
-              </button>
-            ))}
+              {action.label}
+            </button>
+          ))}
 
-          </div>
-        )}
-
-
-        {canCreate && (
-          <button
-            className="btn btn-primary"
-            onClick={onAdd}
-          >
-            <i className={`bi ${addIcon}`}></i>
-          </button>
-        )}
-
-      </div>
-
+        </div>
+      )}
     </div>
   );
 };

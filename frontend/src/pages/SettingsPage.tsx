@@ -6,6 +6,7 @@ import {
   deleteAccount,
 } from "../services/userService";
 import axios from "axios";
+import PageHeader from "../components/common/PageHeader";
 
 const SettingsPage: React.FC = () => {
   const { user, login } = useAuth();
@@ -172,13 +173,16 @@ const SettingsPage: React.FC = () => {
     <div className="container mt-4">
 
       {/* HEADER */}
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <h1 className="mb-1">Paramètres</h1>
         <p className="text-muted mb-0">
           Gérez vos informations personnelles et la sécurité de votre compte
         </p>
-      </div>
-
+      </div> */}
+      <PageHeader
+        title="Paramètres"
+        subtitle="Gérez vos informations personnelles et la sécurité de votre compte."
+      />
       {/* TABS */}
       <div className="d-flex gap-2 mb-4">
         <button className={`btn ${activeTab === "profile" ? "btn-dark" : "btn-outline-secondary"}`} onClick={() => setActiveTab("profile")}>

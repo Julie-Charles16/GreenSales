@@ -268,9 +268,18 @@ const SalesPage: React.FC = () => {
         view={view}
         setView={setView}
         views={headerConfig.views}
-        onAdd={handleAdd}
-        canCreate={canCreate}
-        addIcon="bi-cart-plus"
+        actions={
+          canCreate
+            ? [
+                {
+                  label: "Nouvelle vente",
+                  icon: "bi-cart-plus",
+                  variant: "btn-primary",
+                  onClick: handleAdd,
+                },
+              ]
+            : []
+        }
       />
 
       {user?.role === "MANAGER" && (

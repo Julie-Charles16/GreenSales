@@ -264,9 +264,18 @@ const canDelete = (client: Client) =>
         views={headerConfig.views}
         view={view}
         setView={setView}
-        onAdd={handleAdd}
-        canCreate={canCreate}
-        addIcon="bi-person-plus"
+        actions={
+          canCreate
+            ? [
+                {
+                  label: "Nouveau client",
+                  icon: "bi-person-plus",
+                  variant: "btn-primary",
+                  onClick: handleAdd,
+                },
+              ]
+            : []
+        }
       />
 
       {user?.role === "MANAGER" && (

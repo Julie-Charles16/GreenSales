@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import PageHeader from "../common/PageHeader";
 import type { Client } from "../../types/client";
 import type { Sale } from "../../types/sale";
 import type { Appointment } from "../../types/appointment";
@@ -49,34 +50,30 @@ const AdminDashboard = ({
   appointments,
   users,
 }: Props) => {
+
+  const navigate = useNavigate();
+  
   const today = new Date().toISOString().slice(0, 10);
 
   const todayAppointments = appointments.filter(
     (a) => a.date?.slice(0, 10) === today
   ).length;
 
+
   return (
     <>
-      <div className="d-flex justify-content-between align-items-start mb-4">
-
-        <div>
-          <h1>Administration</h1>
-
-          <p className="text-muted">
-            Vue globale de la plateforme GreenSales.
-          </p>
-        </div>
-
-        <Link
-          to="/users"
-          className="btn btn-dark"
-        >
-          <i className="bi bi-people-fill me-2"></i>
-
-          Gérer les utilisateurs
-        </Link>
-
-      </div>
+      <PageHeader
+        title="Administration"
+        subtitle="Vue globale de la plateforme GreenSales."
+        actions={[
+          {
+            label: "Gérer les utilisateurs",
+            icon: "bi-people-fill",
+            variant: "btn-dark",
+            onClick: () => navigate("/users"),
+          },
+        ]}
+      />
 
       <div className="row g-3 mb-4">
 

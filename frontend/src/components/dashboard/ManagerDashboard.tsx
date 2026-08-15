@@ -2,6 +2,7 @@ import type { Client } from "../../types/client";
 import type { Sale } from "../../types/sale";
 import type { Appointment } from "../../types/appointment";
 
+import PageHeader from "../common/PageHeader";
 import MetricCard from "../common/MetricCard";
 import TeamSalesChart from "./charts/manager/TeamSalesChart";
 import ClientStatusChart from "./charts/manager/ClientStatusChart";
@@ -73,13 +74,10 @@ const ManagerDashboard = ({
 
   return (
     <>
-      <div className="mb-4">
-        <h1>Pilotage de l'équipe</h1>
-
-        <p className="text-muted">
-          Suivez votre activité et celle de votre équipe.
-        </p>
-      </div>
+      <PageHeader
+        title="Pilotage de l'équipe"
+        subtitle="Suivez votre activité et celle de votre équipe."
+      />
 
       <div className="row g-3 mb-4">
 

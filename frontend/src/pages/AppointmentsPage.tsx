@@ -295,9 +295,18 @@ const AppointmentsPage: React.FC = () => {
         view={viewMode}
         setView={setViewMode}
         views={headerConfig.views}
-        onAdd={handleAdd}
-        canCreate={canCreate}
-        addIcon="bi-calendar-plus"
+        actions={
+          canCreate
+            ? [
+                {
+                  label: "Nouveau rendez-vous",
+                  icon: "bi-calendar-plus",
+                  variant: "btn-primary",
+                  onClick: handleAdd,
+                },
+              ]
+            : []
+        }
       />
 
       {user?.role === "MANAGER" && (
