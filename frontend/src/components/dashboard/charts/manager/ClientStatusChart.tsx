@@ -10,7 +10,7 @@ import {
 } from "recharts";
 
 import type { Client } from "../../../../types/client";
-import { CLIENT_STATUS_COLORS } from "../../../../utils/statusColors";
+import { CLIENT_STATUS_BORDER_COLORS } from "../../../../utils/statusColors";
 
 interface Props {
   clients: Client[];
@@ -67,7 +67,10 @@ const ClientStatusChart: React.FC<Props> = ({ clients }) => {
             {data.map((_, index) => (
               <Cell
                 key={index}
-                fill={CLIENT_STATUS_COLORS[data[index].name] ?? "#6c757d"}
+                fill={
+                  CLIENT_STATUS_BORDER_COLORS[data[index].name] ??
+                  "#adb5bd"
+                }
               />
             ))}
 

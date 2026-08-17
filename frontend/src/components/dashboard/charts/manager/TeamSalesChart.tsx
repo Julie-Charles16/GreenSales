@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+
 import {
   BarChart,
   Bar,
@@ -7,7 +8,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  LabelList,
 } from "recharts";
 
 import type { Sale } from "../../../../types/sale";
@@ -22,25 +22,33 @@ const TeamSalesChart: React.FC<Props> = ({ sales }) => {
 
     const totals: Record<string, number> = {};
 
-    sales.forEach((sale) => {
+    sales
+      .filter((sale) => sale.status === "TERMINEE")
+      .forEach((sale) => {
 
-      const name = sale.user?.pseudo ?? `Commercial ${sale.userId}`;
+        const name =
+          sale.user?.pseudo ?? `Commercial ${sale.userId}`;
 
-      if (!totals[name]) {
-        totals[name] = 0;
-      }
+        if (!totals[name]) {
+          totals[name] = 0;
+        }
 
-      totals[name] += sale.amount;
-    });
+        totals[name] += sale.amount;
+      });
 
     return Object.entries(totals)
-      .map(([name, amount]) => ({
-        name,
-        amount,
-      }))
-      .sort((a, b) => b.amount - a.amount);
+    .map(([name, amount]) => ({
+      name,
+      amount,
+    }))
+    .sort((a, b) => b.amount - a.amount)
+    .map((item, index) => ({
+      ...item,
+      rank: index + 1,
+    }));
 
   }, [sales]);
+
 
   return (
     <div style={{ width: "100%", height: 260 }}>
@@ -55,9 +63,9 @@ const TeamSalesChart: React.FC<Props> = ({ sales }) => {
           layout="vertical"
           data={data}
           margin={{
-            top: 10,
-            right: 35,
-            left: 15,
+            top: 5,
+            right: 10,
+            left: 0,
             bottom: 5,
           }}
         >
@@ -73,13 +81,37 @@ const TeamSalesChart: React.FC<Props> = ({ sales }) => {
 
           <YAxis
             type="category"
-            dataKey="name"
-            width={100}
+            dataKey="rank"
+            width={30}
+            tick={({ x, y, payload }) => {
+              const rank = Number(payload.value);
+
+              let content = String(rank);
+
+              if (rank === 1) content = "🥇";
+              if (rank === 2) content = "🥈";
+              if (rank === 3) content = "🥉";
+
+              return (
+                <text
+                  x={Number(x) - 10}
+                  y={y}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize={28}
+                >
+                  {content}
+                </text>
+              );
+            }}
           />
 
           <Tooltip
             formatter={(value) =>
               `${Number(value).toLocaleString("fr-FR")} €`
+            }
+            labelFormatter={(_, payload) =>
+              payload?.[0]?.payload?.name ?? ""
             }
           />
 
@@ -88,15 +120,7 @@ const TeamSalesChart: React.FC<Props> = ({ sales }) => {
             name="Chiffre d'affaires"
             fill="#198754"
             radius={[0, 8, 8, 0]}
-          >
-            <LabelList
-              dataKey="amount"
-              position="right"
-              formatter={(value) =>
-                `${Number(value).toLocaleString("fr-FR")} €`
-              }
-            />
-          </Bar>
+          />
 
         </BarChart>
 

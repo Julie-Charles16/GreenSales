@@ -7,6 +7,7 @@ import { roleConfig } from "../utils/roleConfig";
 import RoleBadge from "../components/common/RoleBadge";
 
 import PageHeader from "../components/common/PageHeader";
+import FiltersBar from "../components/common/FiltersBar";
 import UsersKPI from "../components/common/UsersKPI";
 
 
@@ -19,9 +20,37 @@ const AdminUsersPage = () => {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [error, setError] = useState("");
+
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [managerFilter, setManagerFilter] = useState("");
+
   const managers = users.filter(
   (user) => user.role === "MANAGER"
-);
+  );
+
+  const filteredUsers = users.filter((managedUser) => {
+    const searchValue = search.toLowerCase().trim();
+
+    const matchesSearch =
+      !searchValue ||
+      managedUser.pseudo.toLowerCase().includes(searchValue) ||
+      managedUser.email.toLowerCase().includes(searchValue);
+
+    const matchesRole =
+      !roleFilter ||
+      managedUser.role === roleFilter;
+
+    const matchesManager =
+      !managerFilter ||
+      managedUser.managerId === Number(managerFilter);
+
+    return (
+      matchesSearch &&
+      matchesRole &&
+      matchesManager
+    );
+  });
 
   const loadUsers = async () => {
     try {
@@ -117,6 +146,32 @@ const AdminUsersPage = () => {
         subtitle="Gérez les comptes, les rôles et l'organisation des équipes commerciales."
       />
 
+      <FiltersBar
+        search={search}
+        setSearch={setSearch}
+        searchPlaceholder="Rechercher un utilisateur..."
+        selects={[
+          {
+            value: roleFilter,
+            setValue: setRoleFilter,
+            placeholder: "Tous les rôles",
+            options: roles.map((role) => ({
+              value: role,
+              label: roleConfig[role].label,
+            })),
+          },
+          {
+            value: managerFilter,
+            setValue: setManagerFilter,
+            placeholder: "Tous les managers",
+            options: managers.map((manager) => ({
+              value: String(manager.id),
+              label: manager.pseudo,
+            })),
+          },
+        ]}
+      />
+
       <UsersKPI users={users} />
 
       {error && <div className="alert alert-danger">{error}</div>}
@@ -147,7 +202,7 @@ const AdminUsersPage = () => {
                 </thead>
 
                 <tbody>
-                  {users.map((managedUser) => {
+                {filteredUsers.map((managedUser) => {
                     const isCurrentUser = managedUser.id === currentUser?.id;
                     const isUpdating = updatingId === managedUser.id;
 
@@ -242,13 +297,13 @@ const AdminUsersPage = () => {
                     );
                   })}
 
-                  {users.length === 0 && (
+                  {filteredUsers.length === 0 && (
                     <tr>
                       <td
                         colSpan={5}
                         className="text-center text-muted p-4"
                       >
-                        Aucun utilisateur.
+                        Aucun utilisateur ne correspond aux filtres.
                       </td>
                     </tr>
                   )}
