@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import type { Client } from "../../types/client";
 import type { Sale } from "../../types/sale";
 import type { Appointment } from "../../types/appointment";
+import { getClientStatusColor, getSaleStatusColor } from "../../utils/statusColors";
 
 interface Props {
   clients: Client[];
@@ -14,13 +15,39 @@ const DashboardHighlights: React.FC<Props> = ({
   sales,
   appointments,
 }) => {
-  const today = useMemo(() => {
-    return new Date().toLocaleDateString("sv-SE");
-  }, []);
-
+  
   const todayAppointments = useMemo(() => {
-    return appointments.filter((a) => a.date.startsWith(today));
-  }, [appointments, today]);
+    const now = new Date();
+
+    const today = now.toLocaleDateString("fr-FR", {
+      timeZone: "Europe/Paris",
+    });
+
+    return appointments
+      .filter((appointment) => {
+        const appointmentDate = new Date(appointment.date);
+
+        return (
+          appointmentDate.toLocaleDateString("fr-FR", {
+            timeZone: "Europe/Paris",
+          }) === today
+        );
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.date).getTime() -
+          new Date(b.date).getTime()
+      );
+  }, [appointments]);
+
+  const nextAppointment = useMemo(() => {
+    const now = new Date();
+
+    return todayAppointments.find(
+      (appointment) =>
+        new Date(appointment.date).getTime() >= now.getTime()
+    );
+  }, [todayAppointments]);
 
   const lastClient = useMemo(() => {
     return [...clients].sort(
@@ -30,6 +57,14 @@ const DashboardHighlights: React.FC<Props> = ({
     )[0];
   }, [clients]);
 
+  const appointmentClient = useMemo(() => {
+    if (!nextAppointment) return undefined;
+
+    return clients.find(
+      (client) => client.id === nextAppointment.clientId
+    );
+  }, [clients, nextAppointment]);
+
   const lastSale = useMemo(() => {
     return [...sales].sort(
       (a, b) =>
@@ -37,26 +72,6 @@ const DashboardHighlights: React.FC<Props> = ({
         new Date(a.signedAt).getTime()
     )[0];
   }, [sales]);
-
-  // =========================
-  // CLIENT STATUS
-  // =========================
-  const getClientStatusColor = (status: string) => {
-    switch (status) {
-      case "PROSPECT":
-        return "secondary";
-      case "NEGOCIATION":
-        return "warning";
-      case "DEVIS_ENVOYE":
-        return "info";
-      case "SIGNE":
-        return "success";
-      case "PERDU":
-        return "danger";
-      default:
-        return "secondary";
-    }
-  };
 
   const getClientStatusBadge = (status?: string) => {
     if (!status) return null;
@@ -66,22 +81,6 @@ const DashboardHighlights: React.FC<Props> = ({
         {status}
       </span>
     );
-  };
-
-  // =========================
-  // SALE STATUS
-  // =========================
-  const getSaleStatusColor = (status: string) => {
-    switch (status) {
-      case "EN_ATTENTE":
-        return "secondary";
-      case "ANNULEE":
-        return "danger";
-      case "TERMINEE":
-        return "success";
-      default:
-        return "secondary";
-    }
   };
 
   const getSaleStatusBadge = (status?: string) => {
@@ -112,17 +111,17 @@ const DashboardHighlights: React.FC<Props> = ({
             </span>
           </div>
 
-          {todayAppointments.length > 0 ? (
+          {nextAppointment ? (
             <>
               <div className="fw-semibold">
-                {todayAppointments[0].client
-                  ? `${todayAppointments[0].client.firstName} ${todayAppointments[0].client.name}`
-                  : `Client #${todayAppointments[0].clientId}`}
+                {nextAppointment.client
+                  ? `${nextAppointment.client.firstName} ${nextAppointment.client.name}`
+                  : `Client #${nextAppointment.clientId}`}
               </div>
 
               <small className="text-muted d-block mb-2">
                 à{" "}
-                {new Date(todayAppointments[0].date).toLocaleTimeString("fr-FR", {
+                {new Date(nextAppointment.date).toLocaleTimeString("fr-FR", {
                   hour: "2-digit",
                   minute: "2-digit",
                   timeZone: "Europe/Paris",
@@ -131,12 +130,20 @@ const DashboardHighlights: React.FC<Props> = ({
 
               <small className="text-muted">
                 <i className="bi bi-geo-alt me-1"></i>
-                {lastClient?.address || "Adresse inconnue"}
-                {lastClient?.city ? `, ${lastClient.city}` : ""}
+                {appointmentClient?.address || "Adresse inconnue"}
+                {appointmentClient?.city
+                  ? `, ${appointmentClient.city}`
+                  : ""}
               </small>
             </>
+          ) : todayAppointments.length > 0 ? (
+            <p className="text-muted mb-0">
+              Tous les RDV du jour sont terminés
+            </p>
           ) : (
-            <p className="text-muted mb-0">Aucun RDV aujourd’hui</p>
+            <p className="text-muted mb-0">
+              Aucun RDV aujourd’hui
+            </p>
           )}
         </div>
       </div>

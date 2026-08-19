@@ -86,11 +86,11 @@ const TeamSalesChart: React.FC<Props> = ({ sales }) => {
             tick={({ x, y, payload }) => {
               const rank = Number(payload.value);
 
-              let content = String(rank);
+              let content = "";
 
               if (rank === 1) content = "🥇";
-              if (rank === 2) content = "🥈";
-              if (rank === 3) content = "🥉";
+              else if (rank === 2) content = "🥈";
+              else if (rank === 3) content = "🥉";
 
               return (
                 <text

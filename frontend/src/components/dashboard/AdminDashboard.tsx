@@ -18,32 +18,6 @@ type Props = {
 const formatMoney = (amount: number) =>
   `${amount.toLocaleString("fr-FR")} €`;
 
-// const Metric = ({
-//   icon,
-//   label,
-//   value,
-//   color = "primary",
-// }: {
-//   icon: string;
-//   label: string;
-//   value: string | number;
-//   color?: string;
-// }) => (
-//   <div className="col-md-3">
-//     <div className="card shadow-sm h-100 border-0">
-//       <div className="card-body">
-//         <div className={`text-${color} mb-2`}>
-//           <i className={`bi ${icon} fs-4`} />
-//         </div>
-
-//         <small className="text-muted d-block">{label}</small>
-
-//         <div className="fs-4 fw-bold">{value}</div>
-//       </div>
-//     </div>
-//   </div>
-// );
-
 const AdminDashboard = ({
   clients,
   sales,

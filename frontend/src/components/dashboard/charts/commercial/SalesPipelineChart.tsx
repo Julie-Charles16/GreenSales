@@ -9,7 +9,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
-import type { Sale } from "../../../types/sale";
+import type { Sale } from "../../../../types/sale";
 
 interface Props {
   sales: Sale[];

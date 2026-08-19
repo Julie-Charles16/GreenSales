@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import type { Client } from "../../types/client";
 import type { Sale } from "../../types/sale";
 import type { Appointment } from "../../types/appointment";
@@ -14,6 +13,7 @@ type Props = {
   sales: Sale[];
   appointments: Appointment[];
   currentUserId: number;
+  showHeader?: boolean;
 };
 
 const formatMoney = (amount: number) =>
@@ -24,9 +24,8 @@ const CommercialDashboard = ({
   sales,
   appointments,
   currentUserId,
+  showHeader = true,
 }: Props) => {
-
-  const navigate = useNavigate();
 
   const ownClients = clients.filter(
     (client) => client.userId === currentUserId
@@ -42,25 +41,12 @@ const CommercialDashboard = ({
 
   return (
     <>
-      {/* <div className="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4"> */}
-      <PageHeader
-        title="Mon activité commerciale"
-        subtitle="Gardez un œil sur vos prospects, rendez-vous et ventes."
-        actions={[
-          {
-            label: "Nouveau client",
-            icon: "bi-person-plus",
-            variant: "btn-outline-primary",
-            onClick: () => navigate("/clients"),
-          },
-          {
-            label: "Nouveau RDV",
-            icon: "bi-calendar-plus",
-            variant: "btn-primary",
-            onClick: () => navigate("/appointments"),
-          },
-        ]}
-      />
+      {showHeader && (
+        <PageHeader
+          title="Mon activité commerciale"
+          subtitle="Gardez un œil sur vos prospects, rendez-vous et ventes."
+        />
+      )}
 
       <div className="row g-2 mb-6">
 
@@ -81,7 +67,9 @@ const CommercialDashboard = ({
           icon="bi-cash-stack"
           label="Mon chiffre d'affaires"
           value={formatMoney(
-            ownSales.reduce((sum, sale) => sum + sale.amount, 0)
+            ownSales
+              .filter((sale) => sale.status === "TERMINEE")
+              .reduce((sum, sale) => sum + sale.amount, 0)
           )}
           color="success"
         />
@@ -100,29 +88,30 @@ const CommercialDashboard = ({
 
       <div className="mt-4">
         <DashboardHighlights
-            clients={clients}
-            sales={sales}
-            appointments={appointments}
+          clients={ownClients}
+          sales={ownSales}
+          appointments={ownAppointments}
         />
       </div>
 
+      <div className="mt-4">
         <div className="row g-3">
           {/* RDV CHART */}
           <div className="col-md-6">
             <div className="card shadow-sm p-3" style={{ height: 350 }}>
-              <AppointmentsChart appointments={appointments} />
+              <AppointmentsChart appointments={ownAppointments} />
             </div>
           </div>
 
           {/* SALES PIPELINE CHART */}
           <div className="col-md-6">
             <div className="card shadow-sm p-3" style={{ height: 350 }}>
-              <SalesPipelineChart sales={sales} />
+              <SalesPipelineChart sales={ownSales} />
             </div>
           </div>
         </div>
-        
       </div>
+    </div>
       
     </>
   );

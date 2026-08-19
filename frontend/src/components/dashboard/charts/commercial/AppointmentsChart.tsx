@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import type { Appointment } from "../../../types/appointment";
+import type { Appointment } from "../../../../types/appointment";
 
 interface Props {
   appointments: Appointment[];
