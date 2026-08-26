@@ -6,6 +6,9 @@ import type { AdminUser, Role } from "../types/user";
 import { roleConfig } from "../utils/roleConfig";
 // import RoleBadge from "../components/common/RoleBadge";
 
+import { useBootstrapModal } from "../hooks/useBootstrapModal";
+import UserDeleteModal from "../components/common/UserDeleteModal";
+
 import PageHeader from "../components/common/PageHeader";
 import FiltersBar from "../components/common/FiltersBar";
 import UsersKPI from "../components/common/UsersKPI";
@@ -20,6 +23,12 @@ const AdminUsersPage = () => {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [error, setError] = useState("");
+
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const {
+    deleteModalRef,
+    deleteModal,
+  } = useBootstrapModal();
 
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -87,53 +96,88 @@ const AdminUsersPage = () => {
   };
 
   const changeManager = async (
-  managedUser: AdminUser,
-  managerId: number | null
-) => {
-  try {
-    setUpdatingId(managedUser.id);
-
-    const updated = await updateManagedUserManager(
-      managedUser.id,
-      managerId
-    );
-
-    setUsers((previous) =>
-      previous.map((item) =>
-        item.id === updated.id
-          ? { ...item, ...updated }
-          : item
-      )
-    );
-
-    showToast({
-      message: "Manager modifié.",
-      variant: "success",
-    });
-
-  } catch {
-    showToast({
-      message: "La modification du manager a échoué.",
-      variant: "danger",
-    });
-  } finally {
-    setUpdatingId(null);
-  }
-};
-
-  const removeUser = async (managedUser: AdminUser) => {
-    if (!window.confirm(`Supprimer définitivement le compte de ${managedUser.pseudo} ?`)) return;
-
+    managedUser: AdminUser,
+    managerId: number | null
+  ) => {
     try {
       setUpdatingId(managedUser.id);
-      await deleteManagedUser(managedUser.id);
-      setUsers((previous) => previous.filter((item) => item.id !== managedUser.id));
-      showToast({ message: "Utilisateur supprimé.", variant: "success" });
+
+      const updated = await updateManagedUserManager(
+        managedUser.id,
+        managerId
+      );
+
+      setUsers((previous) =>
+        previous.map((item) =>
+          item.id === updated.id
+            ? { ...item, ...updated }
+            : item
+        )
+      );
+
+      showToast({
+        message: "Manager modifié.",
+        variant: "success",
+      });
+
+    } catch {
+      showToast({
+        message: "La modification du manager a échoué.",
+        variant: "danger",
+      });
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const openDeleteModal = (managedUser: AdminUser) => {
+    setSelectedUser(managedUser);
+    deleteModal?.show();
+  };
+
+  const closeDeleteModal = () => {
+    deleteModal?.hide();
+    setSelectedUser(null);
+  };
+
+  const removeUser = async () => {
+    if (!selectedUser) return;
+
+    try {
+      setUpdatingId(selectedUser.id);
+
+      await deleteManagedUser(selectedUser.id);
+
+      setUsers((previous) =>
+        previous.filter((item) => item.id !== selectedUser.id)
+      );
+
+      showToast({
+        message: "Utilisateur supprimé.",
+        variant: "success",
+      });
+
+      closeDeleteModal();
     } catch (requestError: unknown) {
-      const message = requestError && typeof requestError === "object" && "response" in requestError
-        ? (requestError as { response?: { data?: { message?: string } } }).response?.data?.message
-        : undefined;
-      showToast({ message: message || "La suppression a échoué.", variant: "danger" });
+      const message =
+        requestError &&
+        typeof requestError === "object" &&
+        "response" in requestError
+          ? (
+              requestError as {
+                response?: {
+                  data?: {
+                    message?: string;
+                  };
+                };
+              }
+            ).response?.data?.message
+          : undefined;
+
+      showToast({
+        message: message || "La suppression a échoué.",
+        variant: "danger",
+      });
     } finally {
       setUpdatingId(null);
     }
@@ -288,8 +332,8 @@ const AdminUsersPage = () => {
                             className="btn btn-sm btn-outline-danger"
                             disabled={isCurrentUser || isUpdating}
                             aria-label={`Supprimer ${managedUser.pseudo}`}
-                            onClick={() => void removeUser(managedUser)}
-                          >
+                            onClick={() => openDeleteModal(managedUser)}  
+                            >
                             <i className="bi bi-trash" />
                           </button>
                         </td>
@@ -313,6 +357,12 @@ const AdminUsersPage = () => {
           )}
         </div>
       </div>
+      <UserDeleteModal
+        user={selectedUser}
+        modalRef={deleteModalRef}
+        onClose={closeDeleteModal}
+        onConfirm={() => void removeUser()}
+      />
     </div>
   );
 };
