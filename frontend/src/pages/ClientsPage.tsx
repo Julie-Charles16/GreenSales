@@ -139,8 +139,10 @@ const canDelete = (client: Client) =>
 
   }, [filteredClients, activeTab, user]);
 
-  const showCommercial = user?.role === "MANAGER" && activeTab === "team";
-
+  const showCommercial =
+    user?.role === "ADMIN" ||
+    (user?.role === "MANAGER" && activeTab === "team");
+    
   // Options filtres
   const cities = useMemo(
     () => Array.from(new Set(clients.map(c => c.city))).sort(),

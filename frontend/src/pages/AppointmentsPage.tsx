@@ -161,8 +161,9 @@ const AppointmentsPage: React.FC = () => {
     );
   }, [filteredAppointments, activeTab, user]);
 
-  const showCommercial = user?.role === "MANAGER" && activeTab === "team";
-
+  const showCommercial =
+    user?.role === "ADMIN" ||
+    (user?.role === "MANAGER" && activeTab === "team");
 
   // actions calendrier
   const handleEventClick = (appt: Appointment) => {

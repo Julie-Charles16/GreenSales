@@ -257,8 +257,10 @@ const SalesPage: React.FC = () => {
         ],
   };
 
-  const showCommercial = user?.role === "MANAGER" && activeTab === "team";
-
+  const showCommercial =
+    user?.role === "ADMIN" ||
+    (user?.role === "MANAGER" && activeTab === "team");
+    
   return (
     <div className="container mt-4">
       {/* HEADER */}

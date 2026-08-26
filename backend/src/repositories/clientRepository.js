@@ -4,6 +4,15 @@ const prisma = require('../config/db');
 const getAllClients = (userId = null) => {
   return prisma.client.findMany({
     where: userId ? { userId } : {},
+    include: {
+      user: {
+        select: {
+          id: true,
+          pseudo: true,
+          role: true,
+        },
+      },
+    },
   });
 };
 
