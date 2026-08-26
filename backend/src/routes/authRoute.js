@@ -83,6 +83,15 @@ router.post("/login", async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { email: email.trim() },
+      include: {
+        manager: {
+          select: {
+            id: true,
+            pseudo: true,
+            role: true,
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -108,7 +117,8 @@ router.post("/login", async (req, res) => {
         id: user.id,
         email: user.email,
         pseudo: user.pseudo,
-        role: user.role
+        role: user.role,
+        manager: user.manager
       },
     });
   } catch (err) {

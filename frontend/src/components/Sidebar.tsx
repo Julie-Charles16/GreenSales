@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth/useAuth";
 import { canManageUsers } from "../utils/permissions";
+import UserBadge from "./common/UserBadge";
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
@@ -35,12 +36,27 @@ const Sidebar = () => {
 
       {/* User */}
       <div className="mb-4 text-white">
-        <i className="bi bi-person me-2"></i>
-        Bonjour {user?.pseudo}
+        <div>
+          <i className="bi bi-person me-2"></i>
+          Bonjour {user?.pseudo}
+        </div>
+
+        {user?.manager && (
+          <div className="mt-2">
+            <small className="text-white-50 d-block mb-1">
+              Votre manager
+            </small>
+
+            <UserBadge
+              pseudo={user.manager.pseudo}
+              role={user.manager.role}
+            />
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
-<ul className="nav nav-pills flex-column gap-2 flex-grow-1 overflow-auto">
+      <ul className="nav nav-pills flex-column gap-2 flex-grow-1 overflow-auto">
         <li>
           <NavLink to="/dashboard" className={linkClass}>
             <i className="bi bi-speedometer2"></i>
@@ -48,13 +64,14 @@ const Sidebar = () => {
           </NavLink>
         </li>
 
-        <li>
-        {user && canManageUsers(user.role) && <li>
-          <NavLink to="/users" className={linkClass}>
-            <i className="bi bi-person-gear"></i>
-            Utilisateurs
-          </NavLink>
-        </li>}
+        {user && canManageUsers(user.role) && (
+          <li>
+            <NavLink to="/users" className={linkClass}>
+              <i className="bi bi-person-gear"></i>
+              Utilisateurs
+            </NavLink>
+          </li>
+        )}
         
         <li>
           <NavLink to="/clients" className={linkClass}>
@@ -77,14 +94,12 @@ const Sidebar = () => {
           </NavLink>
         </li>
 
-
-          <NavLink to="/settings" className={linkClass}>
-            <i className="bi bi-gear"></i>
-            Paramètres
-          </NavLink>
-        </li>
-
-
+          <li>
+            <NavLink to="/settings" className={linkClass}>
+              <i className="bi bi-gear"></i>
+              Paramètres
+            </NavLink>
+          </li>
       </ul>
 
       {/* Déconnexion en bas */}

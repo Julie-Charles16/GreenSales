@@ -4,7 +4,7 @@ import { useToast } from "../context/toast/useToast";
 import { deleteManagedUser, getUsers, updateManagedUserRole, updateManagedUserManager } from "../services/adminService";
 import type { AdminUser, Role } from "../types/user";
 import { roleConfig } from "../utils/roleConfig";
-import RoleBadge from "../components/common/RoleBadge";
+// import RoleBadge from "../components/common/RoleBadge";
 
 import PageHeader from "../components/common/PageHeader";
 import FiltersBar from "../components/common/FiltersBar";
@@ -219,7 +219,7 @@ const AdminUsersPage = () => {
                           )}
                         </div>
 
-                        <RoleBadge role={managedUser.role} />
+                        {/* <RoleBadge role={managedUser.role} /> */}
                       </td>
 
                         <td>

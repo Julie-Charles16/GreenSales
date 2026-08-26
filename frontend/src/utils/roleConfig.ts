@@ -15,7 +15,7 @@ export const roleConfig: Record<
   },
   MANAGER: {
     label: "Manager",
-    color: "warning",
+    color: "info",
     icon: "bi-people-fill",
   },
   ADMIN: {
