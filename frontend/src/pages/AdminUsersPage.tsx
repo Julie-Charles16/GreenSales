@@ -12,6 +12,7 @@ import UserDeleteModal from "../components/common/UserDeleteModal";
 import PageHeader from "../components/common/PageHeader";
 import FiltersBar from "../components/common/FiltersBar";
 import UsersKPI from "../components/common/UsersKPI";
+import UsersTable from "../components/common/UsersTable";
 
 
 const roles: Role[] = ["COMMERCIAL", "MANAGER", "ADMIN"];
@@ -218,145 +219,33 @@ const AdminUsersPage = () => {
 
       <UsersKPI users={users} />
 
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      <div className="card shadow-sm">
-        <div className="card-body p-0">
-          {loading ? (
-            <div className="p-4 text-muted">
-              Chargement des utilisateurs…
-            </div>
-          ) : (
-            <div className="table-responsive">
-              <table className="table table-hover align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th className="ps-3">Utilisateur</th>
-                    <th>Email</th>
-                    <th style={{ minWidth: "170px" }}>
-                      Rôle
-                    </th>
-                    <th style={{ minWidth: "200px" }}>
-                      Manager
-                    </th>
-                    <th className="text-end pe-3">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                {filteredUsers.map((managedUser) => {
-                    const isCurrentUser = managedUser.id === currentUser?.id;
-                    const isUpdating = updatingId === managedUser.id;
-
-                    return (
-                      <tr key={managedUser.id}>
-                        <td className="ps-3">
-                        <div className="fw-semibold">
-                          {managedUser.pseudo}
-
-                          {isCurrentUser && (
-                            <span className="badge text-bg-secondary ms-2">
-                              Vous
-                            </span>
-                          )}
-                        </div>
-
-                        {/* <RoleBadge role={managedUser.role} /> */}
-                      </td>
-
-                        <td>
-                          {managedUser.email}
-                        </td>
-
-                        <td className="pe-4">
-                          <select
-                            className="form-select form-select-sm"
-                            value={managedUser.role}
-                            disabled={isCurrentUser || isUpdating}
-                            aria-label={`Rôle de ${managedUser.pseudo}`}
-                            onChange={(event) =>
-                              void changeRole(
-                                managedUser,
-                                event.target.value as Role
-                              )
-                            }
-                          >
-                            {roles.map((role) => (
-                              <option key={role} value={role}>
-                                {roleConfig[role].label}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-
-                        <td className="ps-3 pe-4">
-                          {managedUser.role === "COMMERCIAL" ? (
-                            <select
-                              className="form-select form-select-sm"
-                              value={managedUser.managerId ?? ""}
-                              disabled={isUpdating}
-                              aria-label={`Manager de ${managedUser.pseudo}`}
-                              onChange={(event) =>
-                                void changeManager(
-                                  managedUser,
-                                  event.target.value === ""
-                                    ? null
-                                    : Number(event.target.value)
-                                )
-                              }
-                            >
-                              <option value="">
-                                Aucun manager
-                              </option>
-
-                              {managers.map((manager) => (
-                                <option
-                                  key={manager.id}
-                                  value={manager.id}
-                                >
-                                  {manager.pseudo}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <span className="text-muted">
-                              —
-                            </span>
-                          )}
-                        </td>
-
-                        <td className="text-end pe-3">
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            disabled={isCurrentUser || isUpdating}
-                            aria-label={`Supprimer ${managedUser.pseudo}`}
-                            onClick={() => openDeleteModal(managedUser)}  
-                            >
-                            <i className="bi bi-trash" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-
-                  {filteredUsers.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="text-center text-muted p-4"
-                      >
-                        Aucun utilisateur ne correspond aux filtres.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
+      {error && (
+        <div className="alert alert-danger">
+          {error}
         </div>
-      </div>
+      )}
+
+      {loading ? (
+        <div className="card shadow-sm">
+          <div className="card-body p-4 text-muted">
+            Chargement des utilisateurs…
+          </div>
+        </div>
+      ) : (
+        <UsersTable
+          users={filteredUsers}
+          currentUserId={currentUser?.id}
+          updatingId={updatingId}
+          roles={roles}
+          managers={managers}
+          onChangeRole={(user, role) => void changeRole(user, role)}
+          onChangeManager={(user, managerId) =>
+            void changeManager(user, managerId)
+          }
+          onDelete={openDeleteModal}
+        />
+      )}
+
       <UserDeleteModal
         user={selectedUser}
         modalRef={deleteModalRef}

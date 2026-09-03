@@ -20,7 +20,7 @@ export const roleConfig: Record<
   },
   ADMIN: {
     label: "Administrateur",
-    color: "primary",
+    color: "warning",
     icon: "bi-shield-lock-fill",
   },
 };
