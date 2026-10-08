@@ -1,15 +1,25 @@
-const saleRepository = require('../repositories/saleRepository');
-const clientRepository = require('../repositories/clientRepository');
+const { Prisma } = require("@prisma/client");
+const saleRepository = require("../repositories/saleRepository");
+const clientRepository = require("../repositories/clientRepository");
 
+// CALCUL DE LA COMMISSION
 function calculateCommission(amount) {
-  if (amount >= 20000) return amount * 0.10;
-  if (amount >= 10000) return amount * 0.07;
-  return amount * 0.05;
+  const decimalAmount = new Prisma.Decimal(String(amount));
+
+  if (decimalAmount.gte(20000)) {
+    return decimalAmount.mul(new Prisma.Decimal("0.10"));
+  }
+
+  if (decimalAmount.gte(10000)) {
+    return decimalAmount.mul(new Prisma.Decimal("0.07"));
+  }
+
+  return decimalAmount.mul(new Prisma.Decimal("0.05"));
 }
 
 // CREATE
 async function createSale(data) {
-const { amount, clientId, userId, role } = data;
+  const { amount, clientId, userId, role } = data;
 
   if (!["COMMERCIAL", "MANAGER"].includes(role)) {
     throw new Error(
@@ -35,7 +45,7 @@ const { amount, clientId, userId, role } = data;
   const commission = calculateCommission(amount);
 
   return await saleRepository.create({
-    amount,
+    amount: new Prisma.Decimal(String(amount)),
     clientId,
     userId,
     commission,
@@ -46,7 +56,6 @@ const { amount, clientId, userId, role } = data;
 
 // UPDATE
 async function updateSale(id, data, userId, role) {
-
   if (role === "ADMIN") {
     throw new Error(
       "Un administrateur ne peut pas modifier une vente"
@@ -61,7 +70,6 @@ async function updateSale(id, data, userId, role) {
 
   // COMMERCIAL et MANAGER :
   // uniquement leurs propres ventes
-
   if (sale.userId !== userId) {
     throw new Error("Accès interdit");
   }
@@ -69,16 +77,14 @@ async function updateSale(id, data, userId, role) {
   let updatedData = { ...data };
 
   if (data.amount) {
-
     if (data.amount <= 0) {
-      throw new Error(
-        "Le montant doit être supérieur à 0"
-      );
+      throw new Error("Le montant doit être supérieur à 0");
     }
 
-    updatedData.commission = calculateCommission(
-      data.amount
-    );
+    const decimalAmount = new Prisma.Decimal(String(data.amount));
+
+    updatedData.amount = decimalAmount;
+    updatedData.commission = calculateCommission(decimalAmount);
   }
 
   return await saleRepository.update(
@@ -90,7 +96,6 @@ async function updateSale(id, data, userId, role) {
 
 // GET ALL
 async function getAllSales(userId, role) {
-
   // ADMIN
   if (role === "ADMIN") {
     return await saleRepository.findAll();
@@ -98,9 +103,7 @@ async function getAllSales(userId, role) {
 
   // MANAGER
   if (role === "MANAGER") {
-
     const ownSales = await saleRepository.findAll(userId);
-
     const teamSales = await saleRepository.findTeamSales(userId);
 
     return [
@@ -115,19 +118,15 @@ async function getAllSales(userId, role) {
 
 // GET BY ID
 async function getSaleById(id, userId, role) {
-
   let sale;
 
   // ADMIN : toutes les ventes
   if (role === "ADMIN") {
-
     sale = await saleRepository.findById(id);
-
   }
 
   // MANAGER : ses ventes + équipe
   else if (role === "MANAGER") {
-
     sale = await saleRepository.findById(id);
 
     if (
@@ -137,14 +136,11 @@ async function getSaleById(id, userId, role) {
     ) {
       throw new Error("Accès interdit");
     }
-
   }
 
   // COMMERCIAL : uniquement ses ventes
   else {
-
     sale = await saleRepository.findById(id, userId);
-
   }
 
   if (!sale) {
@@ -156,7 +152,6 @@ async function getSaleById(id, userId, role) {
 
 // DELETE
 async function deleteSale(id, userId, role) {
-
   if (role === "ADMIN") {
     throw new Error(
       "Un administrateur ne peut pas supprimer une vente"

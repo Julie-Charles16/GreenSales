@@ -10,14 +10,11 @@ interface Props {
 }
 
 const getInitialForm = (
-  initialData?: Sale | null,
-  // clients?: Client[]
+  initialData?: Sale | null
 ): SaleFormData => ({
   amount: initialData?.amount ?? 0,
   status: (initialData?.status as SaleStatus) ?? "EN_ATTENTE",
-  // clientId: initialData?.clientId ?? clients?.[0]?.id ?? 0,
-    clientId: initialData?.clientId ?? 0, // 🔥 important
-
+  clientId: initialData?.clientId ?? 0,
 });
 
 const SaleForm: React.FC<Props> = ({
@@ -32,22 +29,41 @@ const SaleForm: React.FC<Props> = ({
     getInitialForm(initialData)
   );
 
+  const [amountInput, setAmountInput] = useState(
+    initialData?.amount !== undefined
+      ? String(initialData.amount)
+      : ""
+  );
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
 
+    if (name === "amount") {
+      setAmountInput(value);
+
+      setFormData((prev) => ({
+        ...prev,
+        amount: value === "" ? 0 : Number(value),
+      }));
+
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name === "amount" || name === "clientId"
-          ? Number(value)
-          : value,
+      [name]: name === "clientId" ? Number(value) : value,
     }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.clientId === 0) {
+      setError("Veuillez sélectionner un client");
+      return;
+    }
 
     if (formData.amount <= 0) {
       setError("Le montant doit être supérieur à 0 €");
@@ -59,6 +75,7 @@ const SaleForm: React.FC<Props> = ({
 
     if (!initialData) {
       setFormData(getInitialForm(null));
+      setAmountInput("");
     }
   };
 
@@ -81,6 +98,7 @@ const SaleForm: React.FC<Props> = ({
         </h5>
 
         <button
+          type="button"
           className="btn-close"
           onClick={() => {
             setError(null);
@@ -98,22 +116,15 @@ const SaleForm: React.FC<Props> = ({
       <form onSubmit={handleSubmit}>
         {/* Client */}
         <div className="mb-3">
-          <label className="form-label fw-semibold">Client</label>
-          {/* <select
-            className="form-select"
-            name="clientId"
-            value={formData.clientId}
-            onChange={handleChange}
-          >
-            {clients.map((client) => (
-              <option key={client.id} value={client.id}>
-                {client.name} {client.firstName}
-              </option>
-            ))}
-          </select> */}
+          <label className="form-label fw-semibold">
+            Client
+          </label>
+
           <select
             name="clientId"
-            className={`form-select ${formData.clientId === 0 ? "is-invalid" : ""}`}
+            className={`form-select ${
+              formData.clientId === 0 ? "is-invalid" : ""
+            }`}
             value={formData.clientId}
             onChange={handleChange}
           >
@@ -129,12 +140,16 @@ const SaleForm: React.FC<Props> = ({
 
         {/* Montant */}
         <div className="mb-3">
-          <label className="form-label fw-semibold">Montant</label>
+          <label className="form-label fw-semibold">
+            Montant
+          </label>
+
           <input
-            className="form-control"
+            className="form-control no-spinner"
             type="number"
             name="amount"
-            value={formData.amount}
+            value={amountInput}
+            placeholder=""
             onChange={handleChange}
           />
         </div>
@@ -143,13 +158,17 @@ const SaleForm: React.FC<Props> = ({
         <div className="mb-3">
           <div className="alert alert-success py-2 mb-0">
             <i className="bi bi-cash-coin me-2 text-success"></i>
-            Commission estimée : <strong>{commission} €</strong>
+            Commission estimée :{" "}
+            <strong>{commission.toFixed(2)} €</strong>
           </div>
         </div>
 
         {/* Status */}
         <div className="mb-4">
-          <label className="form-label fw-semibold">Statut</label>
+          <label className="form-label fw-semibold">
+            Statut
+          </label>
+
           <select
             className="form-select"
             name="status"

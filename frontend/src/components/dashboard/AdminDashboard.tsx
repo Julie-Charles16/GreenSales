@@ -16,7 +16,10 @@ type Props = {
  users: User[];};
 
 const formatMoney = (amount: number) =>
-  `${amount.toLocaleString("fr-FR")} €`;
+  `${amount.toLocaleString("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} €`;
 
 const AdminDashboard = ({
   clients,
@@ -69,7 +72,7 @@ const AdminDashboard = ({
           icon="bi-cash-stack"
           label="CA global"
           value={formatMoney(
-            sales.reduce((sum, sale) => sum + sale.amount, 0)
+            sales.reduce((sum, sale) => sum + Number(sale.amount), 0)
           )}
           color="success"
         />

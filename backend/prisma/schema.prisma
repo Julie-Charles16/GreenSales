@@ -8,17 +8,17 @@ datasource db {
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
-  pseudo       String
-  email        String        @unique
-  password     String
-  createdAt    DateTime      @default(now())
-  role         Role          @default(COMMERCIAL)
+  id        Int      @id @default(autoincrement())
+  pseudo    String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  role      Role     @default(COMMERCIAL)
 
-  managerId    Int?
-  manager      User?         @relation("Team", fields: [managerId], references: [id])
-  team         User[]        @relation("Team")
-  
+  managerId Int?
+  manager   User?  @relation("Team", fields: [managerId], references: [id])
+  team      User[] @relation("Team")
+
   clients      Client[]
   appointments Appointment[]
   sales        Sale[]
@@ -57,8 +57,8 @@ model Appointment {
 
 model Sale {
   id         Int        @id @default(autoincrement())
-  amount     Float
-  commission Float?
+  amount     Decimal    @db.Decimal(10, 2)
+  commission Decimal?   @db.Decimal(10, 2)
   status     SaleStatus
   signedAt   DateTime?
   clientId   Int

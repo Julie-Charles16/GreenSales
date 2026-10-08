@@ -17,15 +17,12 @@ interface Props {
 }
 
 const TeamSalesChart: React.FC<Props> = ({ sales }) => {
-
   const data = useMemo(() => {
-
     const totals: Record<string, number> = {};
 
     sales
       .filter((sale) => sale.status === "TERMINEE")
       .forEach((sale) => {
-
         const name =
           sale.user?.pseudo ?? `Commercial ${sale.userId}`;
 
@@ -33,32 +30,35 @@ const TeamSalesChart: React.FC<Props> = ({ sales }) => {
           totals[name] = 0;
         }
 
-        totals[name] += sale.amount;
+        totals[name] += Number(sale.amount);
       });
 
     return Object.entries(totals)
-    .map(([name, amount]) => ({
-      name,
-      amount,
-    }))
-    .sort((a, b) => b.amount - a.amount)
-    .map((item, index) => ({
-      ...item,
-      rank: index + 1,
-    }));
-
+      .map(([name, amount]) => ({
+        name,
+        amount,
+      }))
+      .sort((a, b) => b.amount - a.amount)
+      .map((item, index) => ({
+        ...item,
+        rank: index + 1,
+      }));
   }, [sales]);
 
+  const formatAmount = (value: number) => {
+    return value.toLocaleString("fr-FR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
 
   return (
     <div style={{ width: "100%", height: 260 }}>
-
       <h6 className="mb-3">
         Chiffre d'affaires par commercial
       </h6>
 
       <ResponsiveContainer>
-
         <BarChart
           layout="vertical"
           data={data}
@@ -69,13 +69,12 @@ const TeamSalesChart: React.FC<Props> = ({ sales }) => {
             bottom: 5,
           }}
         >
-
           <CartesianGrid strokeDasharray="3 3" />
 
           <XAxis
             type="number"
             tickFormatter={(value) =>
-              `${Number(value).toLocaleString("fr-FR")} €`
+              `${formatAmount(Number(value))} €`
             }
           />
 
@@ -108,7 +107,7 @@ const TeamSalesChart: React.FC<Props> = ({ sales }) => {
 
           <Tooltip
             formatter={(value) =>
-              `${Number(value).toLocaleString("fr-FR")} €`
+              `${formatAmount(Number(value))} €`
             }
             labelFormatter={(_, payload) =>
               payload?.[0]?.payload?.name ?? ""
@@ -121,11 +120,8 @@ const TeamSalesChart: React.FC<Props> = ({ sales }) => {
             fill="#198754"
             radius={[0, 8, 8, 0]}
           />
-
         </BarChart>
-
       </ResponsiveContainer>
-
     </div>
   );
 };

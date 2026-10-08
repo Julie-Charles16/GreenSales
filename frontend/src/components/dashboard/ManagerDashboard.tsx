@@ -18,7 +18,10 @@ type Props = {
 };
 
 const formatMoney = (amount: number) =>
-  `${amount.toLocaleString("fr-FR")} €`;
+  `${amount.toLocaleString("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} €`;
 
 const ManagerDashboard = ({
   clients,
@@ -107,7 +110,7 @@ const ManagerDashboard = ({
                 teamSales
                   .filter((sale) => sale.status === "TERMINEE")
                   .reduce(
-                    (sum, sale) => sum + sale.amount,
+                    (sum, sale) => sum + Number(sale.amount),
                     0
                   )
               )}

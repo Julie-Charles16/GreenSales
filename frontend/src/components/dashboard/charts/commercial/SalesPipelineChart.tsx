@@ -27,8 +27,8 @@ const SalesPipelineChart: React.FC<Props> = ({ sales }) => {
       const status = sale.status as keyof typeof totals;
 
       if (totals[status]) {
-        totals[status].amount += sale.amount;
-        totals[status].commission += sale.commission;
+        totals[status].amount += Number(sale.amount);
+        totals[status].commission += Number(sale.commission);
       }
     });
 
@@ -51,9 +51,19 @@ const SalesPipelineChart: React.FC<Props> = ({ sales }) => {
     ];
   }, [sales]);
 
+  const formatAmount = (value: number) => {
+    return value.toLocaleString("fr-FR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   return (
     <div style={{ width: "100%", height: 300 }}>
-        <h6 className="mb-3">Pipeline des ventes (CA & Commission)</h6>
+      <h6 className="mb-3">
+        Pipeline des ventes (CA & Commission)
+      </h6>
+
       <ResponsiveContainer>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -63,17 +73,25 @@ const SalesPipelineChart: React.FC<Props> = ({ sales }) => {
 
           <Tooltip
             formatter={(value) =>
-              `${Number(value).toLocaleString()} €`
+              `${formatAmount(Number(value))} €`
             }
           />
 
           <Legend />
 
           {/* CA */}
-          <Bar dataKey="amount" fill="#0d6efd" name="Chiffre d'affaires" />
+          <Bar
+            dataKey="amount"
+            fill="#0d6efd"
+            name="Chiffre d'affaires"
+          />
 
           {/* Commission */}
-          <Bar dataKey="commission" fill="#198754" name="Commission" />
+          <Bar
+            dataKey="commission"
+            fill="#198754"
+            name="Commission"
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>
